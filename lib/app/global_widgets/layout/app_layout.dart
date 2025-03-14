@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dandang_gula/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -20,28 +21,26 @@ enum UserRole {
 }
 
 class AppLayout extends StatelessWidget {
-  final Widget body;
-  final String title;
+  final Widget content;
   final Widget? floatingActionButton;
   final Widget? bottomNavigationBar;
-  final List<Widget>? actions;
   final bool showBackButton;
   final bool showDatePicker;
   final VoidCallback? onMenuPressed;
+  final Future<void> Function()? onRefresh;
 
   // Get auth service for user role
   final AuthService _authService = Get.find<AuthService>();
 
   AppLayout({
     super.key,
-    required this.body,
-    this.title = '',
+    required this.content,
     this.floatingActionButton,
     this.bottomNavigationBar,
-    this.actions,
     this.showBackButton = false,
     this.showDatePicker = true,
     this.onMenuPressed,
+    this.onRefresh,
   });
 
   // Convert string role from AuthService to UserRole enum
@@ -69,12 +68,35 @@ class AppLayout extends StatelessWidget {
       child: SafeArea(
         child: Scaffold(
           backgroundColor: AppColors.background,
-          body: Padding(
-            padding: const EdgeInsets.all(AppDimensions.spacing12),
-            child: Column(
-              children: [
-                _buildAppBarContent(),
-                Expanded(child: body),
+          body: RefreshIndicator(
+            onRefresh: onRefresh ?? () async {},
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                // App Bar in a SliverToBoxAdapter
+                SliverToBoxAdapter(
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.only(
+                      left: 24,
+                      top: 12,
+                      right: 24,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildNavigation(),
+                        const SizedBox(width: 12),
+                        _buildUserProfile(),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Content as SliverToBoxAdapter
+                SliverToBoxAdapter(
+                  child: content,
+                ),
               ],
             ),
           ),
@@ -85,40 +107,39 @@ class AppLayout extends StatelessWidget {
     );
   }
 
-  Widget _buildAppBarContent() {
-    return Container(
-      height: 70,
-      padding: const EdgeInsets.all(10),
-      margin: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppDimensions.cardPadding),
-      ),
-      child: Row(
-        children: [
-          _buildLogo(),
-          const SizedBox(width: AppDimensions.spacing16),
-          _buildNavigationItems(),
-          const Spacer(),
-          if (actions != null) ...actions!,
-          _buildUserProfile(),
-        ],
+  Widget _buildNavigation() {
+    return Expanded(
+      child: Container(
+        height: 70,
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(AppDimensions.cardPadding),
+        ),
+        child: Row(
+          children: [
+            Image.asset(
+              AppIcons.appIcon,
+              height: 50,
+              width: 50,
+            ),
+            const SizedBox(width: AppDimensions.spacing16),
+            _buildNavigationItems(),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildLogo() {
-    return Image.asset(
-      AppIcons.appIcon,
-      height: 50,
-      width: 50,
-    );
-  }
-
+  // Different menu items based on user role
   Widget _buildNavigationItems() {
-    // Different menu items based on user role
-    return Row(
-      children: _getNavigationItemsByRole(),
+    return Expanded(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: _getNavigationItemsByRole(),
+        ),
+      ),
     );
   }
 
@@ -300,52 +321,96 @@ class AppLayout extends StatelessWidget {
       padding: const EdgeInsets.only(right: 8.0),
       child: InkWell(
         onTap: onTap,
-        child: Container(
-          width: isActive ? 125 : 180,
-          height: 50,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: isActive ? AppColors.primary : AppColors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isActive ? AppColors.primary : Colors.transparent,
-              width: 1,
+        borderRadius: BorderRadius.circular(8),
+        child: Stack(
+          children: [
+            Container(
+              height: 50,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: isActive ? AppColors.primary : Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isActive ? AppColors.primary : Colors.transparent,
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: SvgPicture.asset(
+                      iconPath,
+                      colorFilter: ColorFilter.mode(
+                        isActive ? AppColors.accent : AppColors.black,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  AppText(
+                    label,
+                    style: AppTextStyles.labelLarge.copyWith(
+                      fontWeight: FontWeight.w400,
+                      color: isActive ? AppColors.accent : AppColors.black,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            boxShadow: isActive
-                ? [
-                    const BoxShadow(
-                      color: AppColors.white,
-                      spreadRadius: -2,
-                      blurRadius: 0,
-                    )
-                  ]
-                : null,
-          ),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 24,
-                height: 24,
-                child: SvgPicture.asset(
-                  iconPath,
-                  colorFilter: ColorFilter.mode(
-                    isActive ? const Color(0xFFE2B472) : AppColors.textPrimary,
-                    BlendMode.srcIn,
+            // Container dalam - hanya muncul saat aktif, untuk membuat efek inset
+            if (isActive)
+              Positioned(
+                top: 2,
+                left: 2,
+                right: 2,
+                bottom: 2,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 1,
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: AppTextStyles.buttonSmall.copyWith(
-                  fontFamily: 'IBMPlexSans',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  color: isActive ? const Color(0xFFE2B472) : AppColors.textPrimary,
+
+            // Content di atas container - pastikan tetap terlihat di atas efek inset
+            if (isActive)
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: SvgPicture.asset(
+                          iconPath,
+                          colorFilter: const ColorFilter.mode(
+                            AppColors.accent,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      AppText(
+                        label,
+                        style: AppTextStyles.labelLarge.copyWith(
+                          fontWeight: FontWeight.w400,
+                          color: isActive ? AppColors.accent : AppColors.black,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );
@@ -357,21 +422,41 @@ class AppLayout extends StatelessWidget {
       final user = _authService.currentUser;
       final userName = user?.name ?? 'User';
       final roleName = _getRoleDisplayName(_authService.userRole);
+      final isShowSetting = _authService.userRole == "pusat" || _authService.userRole == "branchmanager" || _authService.userRole == "kasir";
+      final isShowNotif = _authService.userRole != "kasir";
 
-      return Row(
-        children: [
-          if (showDatePicker) _buildDatePicker(),
-          const SizedBox(width: AppDimensions.spacing16),
-          AppIconButton(
-            icon: Icons.notifications_none,
-            onPressed: () {
-              // Handle notifications
-            },
-            backgroundColor: Colors.transparent,
-          ),
-          const SizedBox(width: AppDimensions.spacing8),
-          _buildUserAvatar(userName, roleName),
-        ],
+      return Container(
+        height: 70,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(AppDimensions.cardPadding),
+        ),
+        child: Row(
+          children: [
+            if (isShowSetting) ...[
+              AppIconButton(
+                icon: AppIcons.settings,
+                onPressed: () {
+                  Get.toNamed(Routes.SETTING);
+                },
+                backgroundColor: Colors.transparent,
+              ),
+              const SizedBox(width: AppDimensions.spacing12),
+            ],
+            if (isShowNotif) ...[
+              AppIconButton(
+                icon: AppIcons.notification,
+                onPressed: () {
+                  // Handle notifications
+                },
+                backgroundColor: Colors.transparent,
+              ),
+              const SizedBox(width: AppDimensions.spacing12),
+            ],
+            _buildUserAvatar(userName, roleName),
+          ],
+        ),
       );
     });
   }
@@ -429,43 +514,97 @@ class AppLayout extends StatelessWidget {
   }
 
   Widget _buildUserAvatar(String userName, String roleName) {
-    return Row(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(AppDimensions.radiusCircular),
-            image: const DecorationImage(
-              image: NetworkImage(''),
-              fit: BoxFit.cover,
+    return PopupMenuButton<String>(
+      offset: const Offset(0, 40),
+      padding: EdgeInsets.zero,
+      child: Row(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
             ),
+            clipBehavior: Clip.antiAlias,
+            child: _authService.currentUser?.photoUrl != null && _authService.currentUser!.photoUrl!.isNotEmpty
+                ? CachedNetworkImage(
+                    imageUrl: _authService.currentUser!.photoUrl!,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) {
+                      return Container(
+                        color: AppColors.primary,
+                        child: const Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 1,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    errorWidget: (context, url, error) => _buildDefaultAvatar(),
+                  )
+                : _buildDefaultAvatar(),
+          ),
+          const SizedBox(width: AppDimensions.spacing10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minWidth: 100),
+                  child: AppText(
+                    userName,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              AppText(
+                roleName,
+                style: AppTextStyles.bodySmall,
+              ),
+            ],
+          ),
+        ],
+      ),
+      itemBuilder: (context) {
+        return [
+          PopupMenuItem(
+            value: 'logout',
+            child: AppText.body('Logout'),
+          ),
+        ];
+      },
+      onSelected: (value) {
+        switch (value) {
+          case 'logout':
+            _authService.logout();
+            break;
+        }
+      },
+    );
+  }
+
+// Helper method untuk avatar default
+  Widget _buildDefaultAvatar() {
+    return Container(
+      color: AppColors.primary,
+      child: Center(
+        child: Text(
+          _authService.currentUser?.name?.substring(0, 1).toUpperCase() ?? 'U',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(width: AppDimensions.spacing8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AppText(
-              userName,
-              style: AppTextStyles.bodyMedium.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            AppText(
-              roleName,
-              style: AppTextStyles.bodySmall,
-            ),
-          ],
-        ),
-        const SizedBox(width: AppDimensions.spacing8),
-        const Icon(
-          Icons.arrow_drop_down,
-          color: AppColors.textPrimary,
-        ),
-      ],
+      ),
     );
   }
 }
@@ -579,47 +718,3 @@ class DashboardLayout extends StatelessWidget {
     );
   }
 }
-
-// Example usage:
-/*
-class AdminDashboardScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return AppLayout(
-      userRole: UserRole.admin,
-      body: DashboardLayout(
-        topCards: [
-          AppCard(
-            title: 'Total Income',
-            child: // income widget
-          ),
-          AppCard(
-            title: 'Net Profit',
-            child: // profit widget
-          ),
-        ],
-        middleContent: [
-          AppCard(
-            title: 'Total Income',
-            child: // chart widget
-          ),
-        ],
-        bottomCards: [
-          AppCard(
-            title: 'Sales Performance',
-            child: // performance widget
-          ),
-          AppCard(
-            title: 'Sales Performance',
-            child: // performance widget
-          ),
-          AppCard(
-            title: 'Sales Performance',
-            child: // performance widget
-          ),
-        ],
-      ),
-    );
-  }
-}
-*/

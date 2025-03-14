@@ -1,5 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dandang_gula/app/global_widgets/buttons/toogle_button.dart';
+import 'package:dandang_gula/app/global_widgets/input/app_password_field.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -114,6 +116,7 @@ class LoginView extends StatelessWidget {
                             return Column(
                               children: [
                                 AppTextField(
+                                  appTextFieldEnum: AppTextFieldEnum.login,
                                   label: 'ID lokasi',
                                   hint: 'Masukan id lokasi',
                                   controller: controller.idLokasiController,
@@ -128,6 +131,7 @@ class LoginView extends StatelessWidget {
                           // Username field
                           Obx(() {
                             return AppTextField(
+                              appTextFieldEnum: AppTextFieldEnum.login,
                               label: 'Username',
                               hint: 'Username',
                               controller: controller.usernameController,
@@ -140,14 +144,12 @@ class LoginView extends StatelessWidget {
 
                           // Password field
                           Obx(() {
-                            return AppTextField(
+                            return AppPasswordField(
+                              appTextFieldEnum: AppTextFieldEnum.login,
                               label: 'Password',
                               hint: 'Enter password',
                               controller: controller.passwordController,
-                              obscureText: controller.obscurePassword.value,
                               errorText: controller.passwordError.value.isEmpty ? null : controller.passwordError.value,
-                              suffixIcon: controller.obscurePassword.value ? Icons.visibility_off : Icons.visibility,
-                              onSuffixIconTap: controller.togglePasswordVisibility,
                             );
                           }),
                           const SizedBox(height: 20),
@@ -183,32 +185,34 @@ class LoginView extends StatelessWidget {
                           const SizedBox(height: 32),
 
                           // Login button
-                          Obx(() => ElevatedButton(
-                                onPressed: controller.isLoading.value ? null : controller.login,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.accent,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  minimumSize: const Size(double.infinity, 48),
+                          Obx(() {
+                            return ElevatedButton(
+                              onPressed: controller.isLoading.value ? null : controller.login,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.accent,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: controller.isLoading.value
-                                    ? const SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 3,
-                                        ),
-                                      )
-                                    : AppText(
-                                        'Sign in',
-                                        style: AppTextStyles.buttonLarge.copyWith(
-                                          color: Colors.white,
-                                        ),
+                                minimumSize: const Size(double.infinity, 48),
+                              ),
+                              child: controller.isLoading.value
+                                  ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 3,
                                       ),
-                              )),
+                                    )
+                                  : AppText(
+                                      'Sign in',
+                                      style: AppTextStyles.buttonLarge.copyWith(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                            );
+                          }),
                           const SizedBox(height: 24),
 
                           // Footer
@@ -236,6 +240,49 @@ class LoginView extends StatelessWidget {
                               ),
                             ],
                           ),
+
+                          // Quick login buttons (for development only)
+                          if (kDebugMode) ...[
+                            const SizedBox(height: 32),
+                            Text(
+                              'Quick Login (Development Only)',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              alignment: WrapAlignment.center,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () => controller.loginAsRole('admin'),
+                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                                  child: const Text('Admin'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () => controller.loginAsRole('pusat'),
+                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
+                                  child: const Text('Pusat'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () => controller.loginAsRole('kasir'),
+                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                                  child: const Text('Kasir'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () => controller.loginAsRole('gudang'),
+                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                                  child: const Text('Gudang'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () => controller.loginAsRole('branchmanager'),
+                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                  child: const Text('Branch Manager'),
+                                ),
+                              ],
+                            ),
+                          ]
                         ],
                       ),
                     ),

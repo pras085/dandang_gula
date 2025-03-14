@@ -7,6 +7,7 @@ abstract class Routes {
   static const REPORTS = '/reports';
   static const PROFILE = '/profile';
   static const NOTIFICATIONS = '/notifications';
+  static const SETTING = '/settings';
   
   // Branch management (admin & pusat)
   static const BRANCH_MANAGEMENT = '/branch-management';

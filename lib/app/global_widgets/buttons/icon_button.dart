@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../config/theme/app_colors.dart';
 import '../../config/theme/app_dimensions.dart';
 
 class AppIconButton extends StatelessWidget {
-  final IconData icon;
+  final String icon;
   final VoidCallback? onPressed;
   final Color? backgroundColor;
   final Color? iconColor;
@@ -37,10 +38,13 @@ class AppIconButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
           ),
           child: Center(
-            child: Icon(
+            child: SvgPicture.asset(
               icon,
-              color: iconColor ?? AppColors.textPrimary,
-              size: iconSize ?? AppDimensions.iconSizeMedium,
+              colorFilter: ColorFilter.mode(
+                iconColor ?? AppColors.textPrimary,
+                BlendMode.srcIn,
+              ),
+              height: iconSize ?? AppDimensions.iconSizeMedium,
             ),
           ),
         ),

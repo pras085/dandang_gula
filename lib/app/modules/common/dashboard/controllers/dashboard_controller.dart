@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../../../../data/models/category_sales_model.dart';
 import '../../../../data/models/chart_data_model.dart';
@@ -15,16 +15,19 @@ import '../../../../data/repositories/order_repository.dart';
 import '../../../../data/services/auth_service.dart';
 
 class DashboardController extends GetxController {
-  final DashboardRepository repository;
-  final BranchRepository branchRepository;
-  final OrderRepository orderRepository;
-  final InventoryRepository inventoryRepository;
-  final AuthService authService;
+  // Repositories
+  final BranchRepository branchRepository = Get.find<BranchRepository>();
+  final DashboardRepository dashboardRepository = Get.find<DashboardRepository>();
+  final OrderRepository orderRepository = Get.find<OrderRepository>();
+  final InventoryRepository inventoryRepository = Get.find<InventoryRepository>();
+  final AuthService authService = Get.find<AuthService>();
 
   // Variabel observable (reactive)
   final isLoading = true.obs;
   final userData = Rxn<User>();
   final userRole = ''.obs;
+  final RxString selectedBranchId = ''.obs;
+  final RxString selectedPeriod = 'today'.obs;
 
   // Data untuk semua role
   final todaySales = 0.0.obs;
@@ -53,19 +56,15 @@ class DashboardController extends GetxController {
   final stockFlowData = <StockFlowData>[].obs;
   final stockUsageData = <StockUsage>[].obs;
 
-  DashboardController({
-    required this.repository,
-    required this.branchRepository,
-    required this.orderRepository,
-    required this.inventoryRepository,
-    required this.authService,
-  });
+  // Cache for performance data
+  final _salesPerformanceCache = <String, List<ChartData>>{}.obs;
 
   @override
   void onInit() {
     super.onInit();
     loadUserData();
-    loadDashboardData();
+    // loadDashboardData();
+    fetchInitialData();
   }
 
   void loadUserData() async {
@@ -73,18 +72,56 @@ class DashboardController extends GetxController {
     try {
       userData.value = authService.currentUser;
       userRole.value = userData.value?.role ?? '';
+      debugPrint('role : ${userRole.value}');
     } catch (e) {
-      print('Error loading user data: $e');
+      if (kDebugMode) {
+        print('Error loading user data: $e');
+      }
     } finally {
       isLoading.value = false;
     }
   }
 
+  Future<void> fetchInitialData() async {
+    // Fetch branches
+    await branchRepository.fetchAllBranches();
+
+    // Set default selected branch if available
+    if (branchRepository.branches.isNotEmpty) {
+      selectedBranchId.value = branchRepository.branches.first.id;
+    }
+
+    // Fetch dashboard summary data
+    await dashboardRepository.fetchDashboardSummary();
+
+    // Fetch income chart data
+    // await dashboardRepository.fet();
+
+    // Fetch revenue vs expense data for the selected branch
+    await dashboardRepository.fetchRevenueExpenseData(selectedBranchId.value);
+  }
+
+  // Select a branch
+  void selectBranch(String branchId) {
+    selectedBranchId.value = branchId;
+    // Update revenue vs expense data for the selected branch
+    dashboardRepository.fetchRevenueExpenseData(branchId);
+  }
+
+  // Change period
+  void changePeriod(String period) {
+    selectedPeriod.value = period;
+    // Refresh data for the new period
+    fetchInitialData();
+  }
+
   void loadDashboardData() async {
     isLoading.value = true;
+    await Future.delayed(const Duration(seconds: 2)); // Remove this in production
+
     try {
       // Mock data for development - replace with actual API calls
-      _loadMockData();
+      // _loadMockData();
 
       // Load data sesuai role
       switch (userRole.value) {
@@ -103,227 +140,41 @@ class DashboardController extends GetxController {
           break;
       }
     } catch (e) {
-      print('Error loading dashboard data: $e');
+      if (kDebugMode) {
+        print('Error loading dashboard data: $e');
+      }
     } finally {
       isLoading.value = false;
     }
   }
 
-  // Mock data untuk pengembangan
-  void _loadMockData() {
-    // Sales data
-    salesData.assignAll([
-      ChartData(label: 'Jan', value: 1000),
-      ChartData(label: 'Feb', value: 1200),
-      ChartData(label: 'Mar', value: 900),
-      ChartData(label: 'Apr', value: 1500),
-      ChartData(label: 'May', value: 2000),
-      ChartData(label: 'Jun', value: 1800),
-    ]);
+  // Get sales performance data for a specific branch
+  List<ChartData> getSalesPerformanceForBranch(String branchId) {
+    // Check if we have cached data
+    if (_salesPerformanceCache.value.containsKey(branchId)) {
+      if (_salesPerformanceCache.value[branchId] != null) return _salesPerformanceCache.value[branchId]!;
+      return [];
+    }
 
-    // Category sales
-    categorySales.assignAll([
-      CategorySales(
-        id: '1',
-        name: 'Main Dish',
-        amount: 30000000,
-        percentage: 60.0,
-        color: '#136C3A',
-      ),
-      CategorySales(
-        id: '2',
-        name: 'Soup',
-        amount: 10000000,
-        percentage: 20.0,
-        color: '#1B9851',
-      ),
-      CategorySales(
-        id: '3',
-        name: 'Nusantara',
-        amount: 5000000,
-        percentage: 10.0,
-        color: '#90EE90',
-      ),
-      CategorySales(
-        id: '4',
-        name: 'Grill & Steak',
-        amount: 3000000,
-        percentage: 6.0,
-        color: '#136C3A',
-      ),
-      CategorySales(
-        id: '5',
-        name: 'Beverages',
-        amount: 2000000,
-        percentage: 4.0,
-        color: '#AEDFF7',
-      ),
-    ]);
+    // Fetch data and cache it
+    _fetchAndCacheSalesPerformance(branchId);
 
-    // Product sales
-    productSales.assignAll([
-      ProductSales(
-        id: '1',
-        name: 'Ayam Hamoy',
-        orderCount: 1000,
-        totalSales: 1500000,
-        categoryId: '1',
-        categoryName: 'Main Dish',
-      ),
-      ProductSales(
-        id: '2',
-        name: 'Ayam Laos',
-        orderCount: 520,
-        totalSales: 1500000,
-        categoryId: '1',
-        categoryName: 'Main Dish',
-      ),
-      ProductSales(
-        id: '3',
-        name: 'Americano',
-        orderCount: 15,
-        totalSales: 1500000,
-        categoryId: '2',
-        categoryName: 'Beverages',
-      ),
-      ProductSales(
-        id: '4',
-        name: 'Mix Platter',
-        orderCount: 15,
-        totalSales: 1500000,
-        categoryId: '1',
-        categoryName: 'Main Dish',
-      ),
-      ProductSales(
-        id: '5',
-        name: 'French Fries',
-        orderCount: 15,
-        totalSales: 1500000,
-        categoryId: '3',
-        categoryName: 'Sides',
-      ),
-    ]);
+    // Return empty list while loading
+    return [];
+  }
 
-    // Payment methods
-    paymentMethods.assignAll([
-      PaymentMethod(
-        id: '1',
-        name: 'Tunai / Cash',
-        amount: 100530000,
-        icon: Icons.attach_money,
-      ),
-      PaymentMethod(
-        id: '2',
-        name: 'QRIS',
-        amount: 25530000,
-        icon: Icons.qr_code,
-      ),
-      PaymentMethod(
-        id: '3',
-        name: 'EDC',
-        amount: 12530000,
-        icon: Icons.credit_card,
-      ),
-    ]);
-
-    // Stock alerts
-    stockAlerts.assignAll([
-      StockAlert(
-        id: '1',
-        name: 'Daging Ayam',
-        category: 'Protein',
-        stock: 'Sisa stock',
-        amount: '500gr',
-        alertLevel: 0.9,
-        unitId: '1',
-        unitName: 'gram',
-      ),
-      StockAlert(
-        id: '2',
-        name: 'Selada',
-        category: 'Sayuran',
-        stock: 'Sisa stock',
-        amount: '500gr',
-        alertLevel: 0.85,
-        unitId: '1',
-        unitName: 'gram',
-      ),
-      StockAlert(
-        id: '3',
-        name: 'Susu Full Cream',
-        category: 'Minuman',
-        stock: 'Sisa stock',
-        amount: '500gr',
-        alertLevel: 0.2,
-        unitId: '1',
-        unitName: 'gram',
-      ),
-      StockAlert(
-        id: '4',
-        name: 'Tomat',
-        category: 'Sayuran',
-        stock: 'Sisa stock',
-        amount: '500gr',
-        alertLevel: 0.7,
-        unitId: '1',
-        unitName: 'gram',
-      ),
-      StockAlert(
-        id: '5',
-        name: 'Telur Ayam',
-        category: 'Protein',
-        stock: 'Sisa stock',
-        amount: '500gr',
-        alertLevel: 0.8,
-        unitId: '1',
-        unitName: 'gram',
-      ),
-    ]);
-
-// Stock flow data
-    stockFlowData.assignAll([
-      StockFlowData(date: '01/03', sales: 50, purchases: 70, wastage: 10),
-      StockFlowData(date: '02/03', sales: 60, purchases: 50, wastage: 5),
-      StockFlowData(date: '03/03', sales: 70, purchases: 40, wastage: 8),
-      StockFlowData(date: '04/03', sales: 80, purchases: 60, wastage: 12),
-      StockFlowData(date: '05/03', sales: 65, purchases: 55, wastage: 7),
-      StockFlowData(date: '06/03', sales: 75, purchases: 45, wastage: 9),
-      StockFlowData(date: '07/03', sales: 85, purchases: 65, wastage: 11),
-    ]);
-
-    // Stock usage data
-    stockUsageData.assignAll([
-      StockUsage(
-        id: "1",
-        category: 'Sayuran',
-        percentage: 32.0,
-        color: '#228B22',
-      ),
-      StockUsage(
-        id: "2",
-        category: 'Protein',
-        percentage: 28.0,
-        color: '#136C3A',
-      ),
-      StockUsage(
-        id: "3",
-        category: 'Minuman',
-        percentage: 18.0,
-        color: '#87CEEB',
-      ),
-      StockUsage(
-        id: "4",
-        category: 'Seafood',
-        percentage: 12.0,
-        color: '#20B2AA',
-      ),
-      StockUsage(
-        id: "5",
-        category: 'Bumbu',
-        percentage: 10.0,
-        color: '#90EE90',
-      ),
-    ]);
+  // Fetch and cache sales performance data
+  Future<void> _fetchAndCacheSalesPerformance(String branchId) async {
+    try {
+      await dashboardRepository.fetchSalesPerformanceData(branchId);
+      // _salesPerformanceCache.value[branchId] = data;
+      _salesPerformanceCache.refresh();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching sales performance: $e');
+      }
+      _salesPerformanceCache.value[branchId] = [];
+    }
   }
 
   Future<void> loadAdminData() async {
@@ -362,7 +213,7 @@ class DashboardController extends GetxController {
     lastRestockDate.value = DateTime.now().subtract(const Duration(days: 2));
   }
 
-  void refreshData() {
+  Future<void> refreshData() async {
     loadDashboardData();
   }
 }

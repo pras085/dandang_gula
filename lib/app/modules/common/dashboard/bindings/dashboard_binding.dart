@@ -10,8 +10,8 @@ class DashboardBinding extends Bindings {
   @override
   void dependencies() {
     // Repositories
-    Get.lazyPut<DashboardRepository>(() => DashboardRepositoryImpl());
-    Get.lazyPut<BranchRepository>(() => BranchRepositoryImpl());
+    Get.lazyPut<DashboardRepository>(() => DashboardRepository());
+    Get.lazyPut<BranchRepository>(() => BranchRepository());
     Get.lazyPut<OrderRepository>(() => OrderRepositoryImpl());
     Get.lazyPut<InventoryRepository>(() => InventoryRepositoryImpl());
 
@@ -19,12 +19,6 @@ class DashboardBinding extends Bindings {
     Get.lazyPut<AuthService>(() => AuthService());
 
     // Controller
-    Get.lazyPut<DashboardController>(() => DashboardController(
-          repository: Get.find<DashboardRepository>(),
-          branchRepository: Get.find<BranchRepository>(),
-          orderRepository: Get.find<OrderRepository>(),
-          inventoryRepository: Get.find<InventoryRepository>(),
-          authService: Get.find<AuthService>(),
-        ));
+    Get.lazyPut<DashboardController>(() => DashboardController());
   }
 }

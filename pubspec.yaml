@@ -40,6 +40,7 @@ dependencies:
   intl: ^0.18.1 # For date/time formatting
   cached_network_image: ^3.2.3 # For image caching
   flutter_secure_storage: ^8.0.0 # For storing sensitive data (like tokens)
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:
@@ -110,5 +111,22 @@ flutter:
     - family: SFProDisplay
       fonts:
         - asset: assets/fonts/SFProDisplay-Regular.ttf
+
+    - family: WorkSans
+      fonts:
+        - asset: assets/fonts/WorkSans-Regular.ttf
+        - asset: assets/fonts/WorkSans-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/WorkSans-Italic.ttf
+          style: italic
+
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter_18pt-Regular.ttf
+        - asset: assets/fonts/Inter_18pt-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Inter_18pt-Italic.ttf
+          style: italic
+
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

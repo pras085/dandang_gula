@@ -8,21 +8,25 @@ import 'app/data/services/auth_service.dart';
 import 'app/routes/app_pages.dart';
 
 void main() async {
-  // Ensure Flutter bindings are initialized
   WidgetsFlutterBinding.ensureInitialized();
-
   // Force landscape orientation for tablets
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
 
-  // Initialize the AuthService
-  final authService = Get.put(AuthService(), permanent: true);
-  // Wait for the AuthService to initialize fully (loading from SharedPreferences)
-  // await Future.delayed(const Duration(milliseconds: 500));
+  // Initialize AuthService before running app
+  final authService = await Get.putAsync(() => AuthService().init());
+  final initialRoute = authService.isLoggedIn ? Routes.DASHBOARD : Routes.LOGIN;
 
-  runApp(MyApp(authService: authService));
+  runApp(
+    GetMaterialApp(
+      title: "Dandang Gula",
+      initialRoute: initialRoute,
+      getPages: AppPages.pages,
+      debugShowCheckedModeBanner: false,
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

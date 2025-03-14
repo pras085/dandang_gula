@@ -23,11 +23,9 @@ class LoginController extends GetxController {
   final RxBool isMasterAdmin = false.obs;
   final RxBool obscurePassword = true.obs;
 
-  // Selected role
-  final RxString selectedRole = 'admin'.obs;
-
   @override
   void onClose() {
+    idLokasiController.dispose();
     usernameController.dispose();
     passwordController.dispose();
     super.onClose();
@@ -39,22 +37,13 @@ class LoginController extends GetxController {
 
   void toggleMasterAdmin(bool? value) {
     isMasterAdmin.value = value ?? false;
-    // If master admin is selected, set role to 'pusat'
-    if (isMasterAdmin.value) {
-      selectedRole.value = 'pusat';
-    } else {
-      selectedRole.value = 'admin';
-    }
   }
 
-  void togglePasswordVisibility() {
-    obscurePassword.value = !obscurePassword.value;
-  }
 
   bool _validateForm() {
     bool isValid = true;
 
-    //Validate masterAdmin
+    // Validate masterAdmin
     if (isMasterAdmin.value && idLokasiController.text.isEmpty) {
       idLokasiError.value = 'ID Lokasi is required';
       isValid = false;
@@ -93,12 +82,12 @@ class LoginController extends GetxController {
       final success = await _authService.login(
         usernameController.text,
         passwordController.text,
-        selectedRole.value,
+        locationId: isMasterAdmin.value ? int.tryParse(idLokasiController.text) : null,
       );
 
       if (success) {
-        // Navigate to appropriate dashboard based on role
-        _navigateBasedOnRole();
+        // Navigate to dashboard (the dashboard will show appropriate view based on role)
+        navigateToDashboard();
       } else {
         AppSnackBar.error(
           message: "Invalid username or password",
@@ -113,12 +102,48 @@ class LoginController extends GetxController {
     }
   }
 
-  void _navigateBasedOnRole() {
+  void navigateToDashboard() {
     Get.offAllNamed(Routes.DASHBOARD);
   }
 
   void goToForgotPassword() {
     debugPrint('Forgot password');
     // Get.toNamed(Routes.FORGOT_PASSWORD);
+  }
+
+  // For development/testing - prefill login credentials
+  void loginAsRole(String role) {
+    switch (role) {
+      case 'admin':
+        usernameController.text = 'admin';
+        passwordController.text = 'password';
+        isMasterAdmin.value = false;
+        break;
+
+      case 'pusat':
+        usernameController.text = 'pusat';
+        passwordController.text = 'password';
+        isMasterAdmin.value = true;
+        idLokasiController.text = 'P001';
+        break;
+
+      case 'kasir':
+        usernameController.text = 'kasir';
+        passwordController.text = 'password';
+        isMasterAdmin.value = false;
+        break;
+
+      case 'gudang':
+        usernameController.text = 'gudang';
+        passwordController.text = 'password';
+        isMasterAdmin.value = false;
+        break;
+
+      case 'branchmanager':
+        usernameController.text = 'branchmanager';
+        passwordController.text = 'password';
+        isMasterAdmin.value = false;
+        break;
+    }
   }
 }

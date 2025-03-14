@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../config/constant/app_fonts.dart';
 import '../config/theme/app_colors.dart';
 
 /// Utility class to manage font styles
 class FontUtils {
-  // Helper method untuk membuat TextStyle dengan font tertentu
+  // Private constructor to prevent instantiation
+  FontUtils._();
+
+  /// Creates TextStyle with specified font attributes
   static TextStyle getFont({
     required AppFont font,
     double fontSize = 14.0,
@@ -28,97 +32,139 @@ class FontUtils {
   }
 }
 
+/// Utility class to format currency
+class CurrencyFormatter {
+  // Private constructor to prevent instantiation
+  CurrencyFormatter._();
+
+  /// Format number as Indonesian Rupiah
+  static String formatRupiah(double amount) {
+    final formatter = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+    return formatter.format(amount);
+  }
+
+  /// Format number with custom symbols and decimal places
+  static String formatCurrency(
+    double amount, {
+    String symbol = '',
+    int decimalDigits = 0,
+    String locale = 'id_ID',
+  }) {
+    final formatter = NumberFormat.currency(
+      locale: locale,
+      symbol: symbol,
+      decimalDigits: decimalDigits,
+    );
+    return formatter.format(amount);
+  }
+
+  /// Format number with thousand separators
+  static String formatThousands(double amount, {int decimalDigits = 0}) {
+    final formatter = NumberFormat.decimalPattern('id_ID');
+    formatter.minimumFractionDigits = 0;
+    formatter.maximumFractionDigits = decimalDigits;
+    return formatter.format(amount);
+  }
+}
+
 /// Utility class to manage asset paths
-class AppAssets {
+class AssetUtils {
+  // Private constructor to prevent instantiation
+  AssetUtils._();
+
   // Base paths
   static const String _basePath = 'assets';
   static const String _imagesPath = '$_basePath/images';
   static const String _iconsPath = '$_basePath/icons';
   static const String _fontsPath = '$_basePath/fonts';
-
-  // Icon paths by category
 }
 
 /// Icon paths by category
 class AppIcons {
+  // Private constructor to prevent instantiation
+  AppIcons._();
+
+  // App logo
+  static const String appIcon = '${AssetUtils._iconsPath}/app-icon.png';
+  static const String logoDandangGula = '${AssetUtils._iconsPath}/logo-dandang-gula.png';
+
   // Navigation icons
-  static const String arrowDown = '${AppAssets._iconsPath}/arrow-down.svg';
-  static const String arrowUp = '${AppAssets._iconsPath}/arrow-up.svg';
-  static const String arrowLeft = '${AppAssets._iconsPath}/arrow-left.svg';
-  static const String arrowRight = '${AppAssets._iconsPath}/arrow-right.svg';
-  static const String arrowDownLeft = '${AppAssets._iconsPath}/arrow-down-left.svg';
-  static const String arrowDownRight = '${AppAssets._iconsPath}/arrow-down-right.svg';
-  static const String arrowCounterClockwise = '${AppAssets._iconsPath}/arrow-counter-clockwise.svg';
+  static const String arrowDown = '${AssetUtils._iconsPath}/arrow-down.svg';
+  static const String arrowUp = '${AssetUtils._iconsPath}/arrow-up.svg';
+  static const String arrowLeft = '${AssetUtils._iconsPath}/arrow-left.svg';
+  static const String arrowRight = '${AssetUtils._iconsPath}/arrow-right.svg';
+  static const String arrowDownLeft = '${AssetUtils._iconsPath}/arrow-down-left.svg';
+  static const String arrowDownRight = '${AssetUtils._iconsPath}/arrow-down-right.svg';
+  static const String arrowCounterClockwise = '${AssetUtils._iconsPath}/arrow-counter-clockwise.svg';
+
+  // Carets
+  static const String caretDown = '${AssetUtils._iconsPath}/caret-down.svg';
+  static const String caretUp = '${AssetUtils._iconsPath}/caret-up.svg';
+  static const String caretLeft = '${AssetUtils._iconsPath}/caret-left.svg';
+  static const String caretRight = '${AssetUtils._iconsPath}/caret-right.svg';
+  static const String caretSort = '${AssetUtils._iconsPath}/caret-sort.svg';
 
   // Action icons
-  static const String add = '${AppAssets._iconsPath}/add.svg';
-  static const String edit = '${AppAssets._iconsPath}/edit.svg';
-  static const String delete = '${AppAssets._iconsPath}/delete.svg';
-  static const String save = '${AppAssets._iconsPath}/save.svg';
-  static const String close = '${AppAssets._iconsPath}/close.svg';
-  static const String download = '${AppAssets._iconsPath}/download.svg';
-  static const String settings = '${AppAssets._iconsPath}/settings.svg';
+  static const String add = '${AssetUtils._iconsPath}/add.svg';
+  static const String edit = '${AssetUtils._iconsPath}/edit.svg';
+  static const String delete = '${AssetUtils._iconsPath}/delete.svg';
+  static const String save = '${AssetUtils._iconsPath}/save.svg';
+  static const String close = '${AssetUtils._iconsPath}/close.svg';
+  static const String download = '${AssetUtils._iconsPath}/download.svg';
+  static const String settings = '${AssetUtils._iconsPath}/settings.svg';
+  static const String checkmark = '${AssetUtils._iconsPath}/checkmark.svg';
+  static const String trashCan = '${AssetUtils._iconsPath}/trash-can.svg';
 
-  // UI element icons
-  static const String checkmark = '${AppAssets._iconsPath}/checkmark.svg';
-  static const String caretDown = '${AppAssets._iconsPath}/caret-down.svg';
-  static const String caretUp = '${AppAssets._iconsPath}/caret-up.svg';
-  static const String caretLeft = '${AppAssets._iconsPath}/caret-left.svg';
-  static const String caretRight = '${AppAssets._iconsPath}/caret-right.svg';
-  static const String caretSort = '${AppAssets._iconsPath}/caret-sort.svg';
+  // Main features
+  static const String dashboard = '${AssetUtils._iconsPath}/dashboard.svg';
+  static const String home = '${AssetUtils._iconsPath}/home.svg';
+  static const String login = '${AssetUtils._iconsPath}/login.svg';
+  static const String logout = '${AssetUtils._iconsPath}/logout.svg';
+  static const String notification = '${AssetUtils._iconsPath}/notification-new.svg';
+  static const String userAvatar = '${AssetUtils._iconsPath}/user-avatar.svg';
+  static const String userAccess = '${AssetUtils._iconsPath}/user-access.svg';
+  static const String customerService = '${AssetUtils._iconsPath}/customer-service.svg';
 
-  // Feature icons
-  static const String dashboard = '${AppAssets._iconsPath}/dashboard.svg';
-  static const String home = '${AppAssets._iconsPath}/home.svg';
-  static const String login = '${AppAssets._iconsPath}/login.svg';
-  static const String logout = '${AppAssets._iconsPath}/logout.svg';
-  static const String appIcon = '${AppAssets._iconsPath}/app-icon.png';
-  static const String userAvatar = '${AppAssets._iconsPath}/user-avatar.svg';
-  static const String userAccess = '${AppAssets._iconsPath}/user-access.svg';
-  static const String customerService = '${AppAssets._iconsPath}/customer-service.svg';
+  // Business modules
+  static const String orderDetails = '${AssetUtils._iconsPath}/order-details.svg';
+  static const String restaurant = '${AssetUtils._iconsPath}/restaurant.svg';
+  static const String shoppingBag = '${AssetUtils._iconsPath}/shopping-bag.svg';
+  static const String shoppingCatalog = '${AssetUtils._iconsPath}/shopping-catalog.svg';
+  static const String purchase = '${AssetUtils._iconsPath}/purchase.svg';
+  static const String reportData = '${AssetUtils._iconsPath}/report-data.svg';
+  static const String printer = '${AssetUtils._iconsPath}/printer.svg';
+  static const String percentage = '${AssetUtils._iconsPath}/percentage.svg';
+  static const String bottlesContainer = '${AssetUtils._iconsPath}/bottles-container.svg';
+  static const String wheat = '${AssetUtils._iconsPath}/wheat.svg';
+  static const String noodleBowl = '${AssetUtils._iconsPath}/noodle-bowl.svg';
 
-  // Module specific icons
-  static const String orderDetails = '${AppAssets._iconsPath}/order-details.svg';
-  static const String restaurant = '${AppAssets._iconsPath}/restaurant.svg';
-  static const String shoppingBag = '${AppAssets._iconsPath}/shopping-bag.svg';
-  static const String shoppingCatalog = '${AppAssets._iconsPath}/shopping-catalog.svg';
-  static const String purchase = '${AppAssets._iconsPath}/purchase.svg';
-  static const String reportData = '${AppAssets._iconsPath}/report-data.svg';
-  static const String printer = '${AppAssets._iconsPath}/printer.svg';
-  static const String percentage = '${AppAssets._iconsPath}/percentage.svg';
-  static const String notification = '${AppAssets._iconsPath}/notification-new.svg';
-  static const String bottlesContainer = '${AppAssets._iconsPath}/bottles-container.svg';
+  // UI related
+  static const String viewFilled = '${AssetUtils._iconsPath}/view-filled.svg';
+  static const String viewOffFilled = '${AssetUtils._iconsPath}/view-off-filled.svg';
+  static const String splitScreen = '${AssetUtils._iconsPath}/split-screen.svg';
+  static const String overflowMenuHorizontal = '${AssetUtils._iconsPath}/overflow-menu-horizontal.svg';
+  static const String camera = '${AssetUtils._iconsPath}/camera.svg';
 
-  // View related
-  static const String viewFilled = '${AppAssets._iconsPath}/view-filled.svg';
-  static const String viewOffFilled = '${AppAssets._iconsPath}/view-off-filled.svg';
-  static const String splitScreen = '${AppAssets._iconsPath}/split-screen.svg';
-  static const String overflowMenuHorizontal = '${AppAssets._iconsPath}/overflow-menu-horizontal.svg';
-
-  // Business specific
-  static const String ibmGcm = '${AppAssets._iconsPath}/ibm-gcm.svg';
-  static const String calendarHeatMap = '${AppAssets._iconsPath}/calendar-heat-map.svg';
-  static const String camera = '${AppAssets._iconsPath}/camera.svg';
-  static const String trashCan = '${AppAssets._iconsPath}/trash-can.svg';
-  static const String wheat = '${AppAssets._iconsPath}/wheat.svg';
-  static const String noodleBowl = '${AppAssets._iconsPath}/noodle-bowl.svg';
-
-  // Logo
-  static const String logoDandangGula = '${AppAssets._iconsPath}/logo-dandang-gula.png';
+  // Calendar related
+  static const String ibmGcm = '${AssetUtils._iconsPath}/ibm-gcm.svg';
+  static const String calendarHeatMap = '${AssetUtils._iconsPath}/calendar-heat-map.svg';
+  static const String calendarDot = '${AssetUtils._iconsPath}/calendar-dot.svg';
 }
 
-/// Images paths
-class Images {
-  static const String logo = '${AppAssets._imagesPath}/logo-.png';
-  static const String background = '${AppAssets._imagesPath}/background.png';
-  static const String placeholder = '${AppAssets._imagesPath}/placeholder.png';
+/// Image paths
+class AppImages {
+  // Private constructor to prevent instantiation
+  AppImages._();
 
-  // Add more image paths as needed
-}
-
-/// Font paths if needed
-class Fonts {
-  static const String roboto = '${AppAssets._fontsPath}/Roboto-Regular.ttf';
+  static const String logo = '${AssetUtils._imagesPath}/logo.png';
+  static const String background = '${AssetUtils._imagesPath}/background.png';
+  static const String placeholder = '${AssetUtils._imagesPath}/placeholder.png';
+  static const String loginBackground = '${AssetUtils._imagesPath}/login-background.png';
+  static const String splashBackground = '${AssetUtils._imagesPath}/splash-background.png';
 }
 
 /// Extension to make asset path generation more flexible
@@ -129,4 +175,53 @@ extension AssetPathExtension on String {
 
   String withIconExtension(String extension) => 'assets/icons/$this.$extension';
   String withImageExtension(String extension) => 'assets/images/$this.$extension';
+}
+
+/// Date formatting utilities
+class DateFormatter {
+  // Private constructor to prevent instantiation
+  DateFormatter._();
+
+  /// Format date to Indonesian format (dd MMMM yyyy)
+  static String formatDateID(DateTime? date) {
+    if (date == null) {
+      return "";
+    }
+    return DateFormat('dd MMMM yyyy', 'id_ID').format(date);
+  }
+
+  /// Format date with custom pattern
+  static String formatDate(DateTime? date, {String pattern = 'dd/MM/yyyy'}) {
+    if (date == null) {
+      return "";
+    }
+    return DateFormat(pattern).format(date);
+  }
+
+  /// Format date and time
+  static String formatDateTime(DateTime? dateTime) {
+    if (dateTime == null) {
+      return "";
+    }
+
+    return DateFormat('dd/MM/yyyy HH:mm').format(dateTime);
+  }
+}
+
+/// Validation utilities
+class ValidationUtils {
+  // Private constructor to prevent instantiation
+  ValidationUtils._();
+
+  /// Validate email address
+  static bool isValidEmail(String email) {
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    return emailRegex.hasMatch(email);
+  }
+
+  /// Validate phone number (Indonesian format)
+  static bool isValidPhone(String phone) {
+    final phoneRegex = RegExp(r'^(\+62|62|0)8[1-9][0-9]{6,9}$');
+    return phoneRegex.hasMatch(phone);
+  }
 }

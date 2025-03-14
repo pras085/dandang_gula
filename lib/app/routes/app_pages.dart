@@ -1,4 +1,3 @@
-
 import 'package:get/get.dart';
 import '../core/middleware/auth_middleware.dart';
 
@@ -40,6 +39,8 @@ import '../modules/common/dashboard/bindings/dashboard_binding.dart';
 // Menu management
 // import '../modules/branch_manager/menu_management/bindings/menu_management_binding.dart';
 // import '../modules/branch_manager/menu_management/views/menu_management_view.dart';
+import '../modules/common/setting/bindings/setting_binding.dart';
+import '../modules/common/setting/views/setting_view.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -54,16 +55,25 @@ class AppPages {
     // Common routes
     GetPage(
       name: Routes.DASHBOARD,
-      page: () => DashboardView(),
+      page: () => const DashboardView(),
       binding: DashboardBinding(),
       middlewares: [AuthMiddleware()],
     ),
+
+    GetPage(
+      name: Routes.SETTING,
+      page: () => const SettingView(),
+      binding: SettingBinding(),
+      middlewares: [AuthMiddleware()],
+    ),
+
     // GetPage(
     //   name: Routes.REPORTS,
     //   page: () => ReportsView(),
     //   binding: ReportsBinding(),
     //   middlewares: [AuthMiddleware()],
     // ),
+
     // GetPage(
     //   name: Routes.PROFILE,
     //   page: () => ProfileView(),

@@ -1,43 +1,54 @@
 class User {
-  final String id;
-  final String name;
-  final String email;
-  final String role; // admin, kasir, gudang, pusat, branchmanager
-  final String branchId;
-  final String branchName;
+  final int? id;
+  final String? name;
+  final String? username;
   final String? photoUrl;
+  final String? role;
+  final String? branchName;
+  final int? branchId;
+  final String? createdAt;
+  final String? password;
+  final String? pin;
 
   User({
-    required this.id,
-    required this.name,
-    required this.email,
-    required this.role,
-    required this.branchId,
-    required this.branchName,
+    this.id,
+    this.name,
+    this.username,
     this.photoUrl,
+    this.role,
+    this.branchName,
+    this.branchId,
+    this.createdAt,
+    this.password,
+    this.pin,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'],
       name: json['name'],
-      email: json['email'],
-      role: json['role'],
-      branchId: json['branch_id'],
-      branchName: json['branch_name'],
+      username: json['username'],
       photoUrl: json['photo_url'],
+      role: json['role'],
+      branchName: json['branch_name'],
+      branchId: json['branch_id'],
+      createdAt: json['created_at'],
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
+    final Map<String, dynamic> data = {
       'name': name,
-      'email': email,
-      'role': role,
-      'branch_id': branchId,
-      'branch_name': branchName,
-      'photo_url': photoUrl,
+      'username': username,
     };
+
+    if (id != null) data['id'] = id;
+    if (photoUrl != null) data['photo_url'] = photoUrl;
+    if (role != null) data['role'] = role;
+    if (branchId != null) data['branch_id'] = branchId;
+    if (password != null) data['password'] = password;
+    if (pin != null) data['pin'] = pin;
+
+    return data;
   }
 }

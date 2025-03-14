@@ -4,6 +4,7 @@ import '../constant/app_fonts.dart';
 import 'app_colors.dart';
 import 'app_dimensions.dart';
 import 'app_text_styles.dart';
+
 class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
@@ -46,27 +47,31 @@ class AppTheme {
       ),
 
       // Input decoration theme
+      // Input decoration theme
       inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: const Color(0xFFF5F4EF),
+        fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppDimensions.spacing16,
-          vertical: AppDimensions.spacing12,
+          horizontal: 10, // Matches your 10px padding
+          vertical: 10, // Matches your design
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
-          borderSide: const BorderSide(color: Color(0xFFC1C1C1)),
+          borderRadius: BorderRadius.circular(6), // 6px border radius from your design
+          borderSide: const BorderSide(color: Color(0xFFDFDFDF)), // #DFDFDF from your design
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
-          borderSide: const BorderSide(color: Color(0xFFC1C1C1)),
+          borderRadius: BorderRadius.circular(6),
+          borderSide: const BorderSide(color: Color(0xFFDFDFDF)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderRadius: BorderRadius.circular(6),
+          borderSide: const BorderSide(color: AppColors.primary),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(6),
+          borderSide: const BorderSide(color: Color(0xFFDFDFDF)),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
+          borderRadius: BorderRadius.circular(6),
           borderSide: const BorderSide(color: AppColors.error),
         ),
         hintStyle: AppTextStyles.inputHint,

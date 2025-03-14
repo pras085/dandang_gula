@@ -44,7 +44,7 @@ class AppTextStyles {
   static final TextStyle bodyMedium = FontUtils.getFont(
     font: AppFont.ibmPlexSans,
     fontSize: 14,
-    fontWeight: FontWeight.normal,
+    fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
   );
 
@@ -119,11 +119,30 @@ class AppTextStyles {
     letterSpacing: 0.3,
   );
 
+  static final TextStyle contentLabel = FontUtils.getFont(
+    font: AppFont.workSans,
+    fontSize: 14,
+    fontWeight: FontWeight.normal,
+    color: AppColors.textSecondary,
+    height: 16.42 / 14,
+    letterSpacing: -0.04 * 14,
+  );
+
   // Code styles
   static final TextStyle codeText = FontUtils.getFont(
     font: AppFont.ibmPlexMono,
     fontSize: 14,
     fontWeight: FontWeight.normal,
     color: AppColors.textPrimary,
+  );
+
+  // Card Styles
+  static final TextStyle cardLabel = FontUtils.getFont(
+    font: AppFont.inter,
+    fontSize: 14,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+    height: 16.94 / 14,
+    letterSpacing: 0,
   );
 }

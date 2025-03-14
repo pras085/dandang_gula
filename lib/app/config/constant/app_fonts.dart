@@ -4,6 +4,7 @@ enum AppFont {
   inter,
   roboto,
   sfProDisplay,
+  workSans,
 }
 
 // Extension untuk mendapatkan string nama font
@@ -20,6 +21,8 @@ extension AppFontExtension on AppFont {
         return 'Roboto';
       case AppFont.sfProDisplay:
         return 'SFProDisplay';
+      case AppFont.workSans:
+        return 'WorkSans';
     }
   }
 }

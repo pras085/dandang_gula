@@ -16,41 +16,44 @@ class DashboardView extends GetView<DashboardController> {
   Widget build(BuildContext context) {
     return Obx(() {
       if (controller.isLoading.value) {
-        return AppLayout(
-          body: const Center(
+        return const Scaffold(
+          body: Center(
             child: CircularProgressIndicator(),
           ),
         );
       }
 
-      // Route ke view yang sesuai berdasarkan role
+      // Kasir view memiliki layout khusus
+      // if (controller.userRole.value == 'kasir') {
+      //   return KasirDashboardView(controller: controller);
+      // }
+
+      // Untuk role lainnya, gunakan AppLayout dengan content yang sesuai
+      Widget dashboardContent;
       switch (controller.userRole.value) {
         case 'admin':
-          return AppLayout(
-            body: AdminDashboardView(controller: controller),
-          );
+          dashboardContent = AdminDashboardView(controller: controller);
+          break;
         case 'pusat':
-          return AppLayout(
-            body: PusatDashboardView(controller: controller),
-          );
+          dashboardContent = PusatDashboardView(controller: controller);
+          break;
         case 'branchmanager':
-          return AppLayout(
-            body: SupervisorDashboardView(controller: controller),
-          );
-        case 'kasir':
-          // Kasir view memiliki layout khusus, sehingga tidak menggunakan AppLayout
-          return KasirDashboardView(controller: controller);
+          dashboardContent = BranchManagerDashboardView(controller: controller);
+          break;
         case 'gudang':
-          return AppLayout(
-            body: GudangDashboardView(controller: controller),
-          );
+          dashboardContent = GudangDashboardView(controller: controller);
+          break;
         default:
-          return AppLayout(
-            body: Center(
-              child: Text('Role tidak valid: ${controller.userRole.value}'),
-            ),
+          dashboardContent = Center(
+            child: Text('Role tidak valid: ${controller.userRole.value}'),
           );
       }
+
+      return AppLayout(
+        content: dashboardContent,
+        showDatePicker: controller.userRole.value != 'admin',
+        onRefresh: () => controller.refreshData(),
+      );
     });
   }
 }
