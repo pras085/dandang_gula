@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
+import 'dart:developer';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
@@ -24,7 +24,7 @@ class ApiService extends GetxService {
         queryParameters: queryParams,
       );
 
-      debugPrint('GET Request: $uri');
+      log('GET Request: $uri');
 
       final response = await http
           .get(
@@ -35,7 +35,7 @@ class ApiService extends GetxService {
 
       return _processResponse(response);
     } catch (e) {
-      debugPrint('GET Error: $e');
+      log('GET Error: $e');
       throw Exception('Failed to perform GET request: $e');
     }
   }
@@ -44,8 +44,8 @@ class ApiService extends GetxService {
   Future<dynamic> post(String endpoint, {Map<String, dynamic>? body}) async {
     try {
       final uri = Uri.parse('$baseUrl$endpoint');
-      debugPrint('POST Request: $uri');
-      debugPrint('POST Body: $body');
+      log('POST Request: $uri');
+      log('POST Body: $body');
 
       final response = await http
           .post(
@@ -57,7 +57,7 @@ class ApiService extends GetxService {
 
       return _processResponse(response);
     } catch (e) {
-      debugPrint('POST Error: $e');
+      log('POST Error: $e');
       throw Exception('Failed to perform POST request: $e');
     }
   }
@@ -66,7 +66,7 @@ class ApiService extends GetxService {
   Future<dynamic> put(String endpoint, {Map<String, dynamic>? body}) async {
     try {
       final uri = Uri.parse('$baseUrl$endpoint');
-      debugPrint('PUT Request: $uri');
+      log('PUT Request: $uri');
 
       final response = await http
           .put(
@@ -78,7 +78,7 @@ class ApiService extends GetxService {
 
       return _processResponse(response);
     } catch (e) {
-      debugPrint('PUT Error: $e');
+      log('PUT Error: $e');
       throw Exception('Failed to perform PUT request: $e');
     }
   }
@@ -87,7 +87,7 @@ class ApiService extends GetxService {
   Future<dynamic> delete(String endpoint) async {
     try {
       final uri = Uri.parse('$baseUrl$endpoint');
-      debugPrint('DELETE Request: $uri');
+      log('DELETE Request: $uri');
 
       final response = await http
           .delete(
@@ -98,15 +98,15 @@ class ApiService extends GetxService {
 
       return _processResponse(response);
     } catch (e) {
-      debugPrint('DELETE Error: $e');
+      log('DELETE Error: $e');
       throw Exception('Failed to perform DELETE request: $e');
     }
   }
 
   // Process response and handle errors
   dynamic _processResponse(http.Response response) {
-    debugPrint('Response Status Code: ${response.statusCode}');
-    debugPrint('Response Body: ${response.body}');
+    log('Response Status Code: ${response.statusCode}');
+    log('Response Body: ${response.body}');
 
     switch (response.statusCode) {
       case 200:

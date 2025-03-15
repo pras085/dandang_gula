@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../../../../data/models/category_sales_model.dart';
@@ -43,6 +45,7 @@ class DashboardController extends GetxController {
   final categorySales = <CategorySales>[].obs;
   final productSales = <ProductSales>[].obs;
   final paymentMethods = <PaymentMethod>[].obs;
+  final branchesSalesData = <String, List<ChartData>>{}.obs;
 
   // Data untuk kasir
   final completedOrders = 0.obs;
@@ -83,7 +86,7 @@ class DashboardController extends GetxController {
     try {
       userData.value = authService.currentUser;
       userRole.value = userData.value?.role ?? '';
-      debugPrint('role : ${userRole.value}');
+      log('role : ${userRole.value}');
     } catch (e) {
       if (kDebugMode) {
         print('Error loading user data: $e');
@@ -94,19 +97,34 @@ class DashboardController extends GetxController {
   }
 
   Future<void> fetchInitialData() async {
-    // Fetch branches
-    await branchRepository.fetchAllBranches();
+    try {
+      // Fetch branches
+      await branchRepository.fetchAllBranches();
+      log('Branches fetched: ${branchRepository.branches.length}');
 
-    // Set default selected branch if available
-    if (branchRepository.branches.isNotEmpty) {
-      selectedBranchId.value = branchRepository.branches.first.id;
+      // Set default selected branch if available
+      if (branchRepository.branches.isNotEmpty) {
+        selectedBranchId.value = branchRepository.branches.first.id;
+        log('Selected branch: ${selectedBranchId.value}');
+      }
+
+      // Fetch dashboard summary data
+      await dashboardRepository.fetchDashboardSummary();
+      log('Dashboard summary fetched');
+
+      // Fetch sales performance masing-masing branch
+      await fetchAllBranchesSalesData();
+
+      // Fetch sales performance data
+      await dashboardRepository.fetchSalesPerformanceData(selectedBranchId.value);
+      log('Sales performance data fetched: ${dashboardRepository.incomeChartData.value.length} items');
+
+      // Fetch revenue vs expense data for the selected branch
+      await dashboardRepository.fetchRevenueExpenseData(selectedBranchId.value);
+      log('Revenue expense data fetched');
+    } catch (e) {
+      log('Error in fetchInitialData: $e');
     }
-
-    // Fetch dashboard summary data
-    await dashboardRepository.fetchDashboardSummary();
-
-    // Fetch revenue vs expense data for the selected branch
-    await dashboardRepository.fetchRevenueExpenseData(selectedBranchId.value);
   }
 
   // Select a branch
@@ -233,32 +251,20 @@ class DashboardController extends GetxController {
     }
   }
 
-  Future<void> refreshData() async {
-    isLoading.value = true;
+  Future<void> fetchAllBranchesSalesData() async {
     try {
-      // Check and set selected branch if needed
-      if (selectedBranchId.value.isEmpty && branchRepository.branches.isNotEmpty) {
-        selectedBranchId.value = branchRepository.branches.first.id;
+      final branches = branchRepository.branches;
+      if (branches.isEmpty) return;
+
+      for (final branch in branches) {
+        // Fetch data untuk setiap cabang
+        await dashboardRepository.fetchSalesPerformanceData(branch.id);
+
+        // Simpan hasil di map
+        branchesSalesData[branch.id] = List<ChartData>.from(dashboardRepository.incomeChartData.value);
       }
-
-      // Refresh repositories in sequence
-      await branchRepository.fetchAllBranches();
-      await dashboardRepository.fetchDashboardSummary();
-
-      // Only fetch branch data if we have valid branch ID
-      if (selectedBranchId.value.isNotEmpty) {
-        await dashboardRepository.fetchRevenueExpenseData(selectedBranchId.value);
-        await dashboardRepository.fetchSalesPerformanceData(selectedBranchId.value);
-      }
-
-      // Load role-specific data
-      await loadDashboardData();
     } catch (e) {
-      if (kDebugMode) {
-        print('Error refreshing data: $e');
-      }
-    } finally {
-      isLoading.value = false;
+      print('Error fetching all branches sales data: $e');
     }
   }
 

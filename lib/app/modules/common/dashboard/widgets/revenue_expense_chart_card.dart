@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart'; // Add this import for number formatting
 
 import '../../../../config/theme/app_colors.dart';
 import '../../../../config/theme/app_text_styles.dart';
@@ -36,8 +37,9 @@ class RevenueExpenseChartCard extends StatelessWidget {
           // Revenue vs Expense chart (right side)
           Expanded(
             child: Obx(() {
+              final branchRepo = controller.branchRepository;
               final selectedBranchId = controller.selectedBranchId.value;
-              final selectedBranch = controller.branchRepository.getBranchById(selectedBranchId);
+              final selectedBranch = branchRepo.branches.isNotEmpty ? branchRepo.getBranchById(selectedBranchId) : null;
 
               // Trigger update when branch selection changes
               if (selectedBranchId.isNotEmpty) {
@@ -197,6 +199,8 @@ class RevenueVsExpenseChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final NumberFormat currencyFormat = NumberFormat("#,#", "en_US"); // Define the number format
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -235,7 +239,7 @@ class RevenueVsExpenseChart extends StatelessWidget {
                     style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textTertiary),
                   ),
                 )
-              : _buildChart(),
+              : _buildChart(currencyFormat),
         ),
 
         // Legend
@@ -278,7 +282,7 @@ class RevenueVsExpenseChart extends StatelessWidget {
     );
   }
 
-  Widget _buildChart() {
+  Widget _buildChart(NumberFormat currencyFormat) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Row(
@@ -286,7 +290,7 @@ class RevenueVsExpenseChart extends StatelessWidget {
           children: [
             // Chart content
             Expanded(
-              child: _buildGridAndBars(constraints),
+              child: _buildGridAndBars(constraints, currencyFormat),
             ),
           ],
         );
@@ -294,7 +298,7 @@ class RevenueVsExpenseChart extends StatelessWidget {
     );
   }
 
-  Widget _buildGridAndBars(BoxConstraints constraints) {
+  Widget _buildGridAndBars(BoxConstraints constraints, NumberFormat currencyFormat) {
     if (data.isEmpty) {
       return const SizedBox();
     }
@@ -302,72 +306,104 @@ class RevenueVsExpenseChart extends StatelessWidget {
     // Calculate grid dimensions
     final double barSpacing = constraints.maxWidth / data.length;
 
+    // Calculate chart height (leave space for x-axis labels)
+    final double chartHeight = constraints.maxHeight - 20;
+
     return Stack(
       children: [
-        // Grid lines
-        _buildGridLines(constraints),
+        // Grid lines - pastikan grid dimulai dari atas dan berakhir tepat di atas labels
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: chartHeight,
+          child: _buildGridLines(BoxConstraints(
+            minWidth: constraints.maxWidth,
+            maxWidth: constraints.maxWidth,
+            minHeight: chartHeight,
+            maxHeight: chartHeight,
+          )),
+        ),
 
-        // Bars
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: List.generate(data.length, (index) {
-            final item = data[index];
-            // Find max value for scaling
-            final maxValue = data.map((e) => e.revenue > e.expense ? e.revenue : e.expense).reduce((a, b) => a > b ? a : b);
+        // Bars - pastikan mereka juga dimulai dari atas area yang sama
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: chartHeight,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: List.generate(data.length, (index) {
+              final item = data[index];
+              // Find max value for scaling
+              final maxValue = data.map((e) => e.revenue > e.expense ? e.revenue : e.expense).reduce((a, b) => a > b ? a : b);
 
-            // Calculate bar heights - reserve proper space for labels
-            final double maxHeight = constraints.maxHeight * 0.8; // Use 80% of height for bars, 20% for labels
-            final double revenueHeight = (item.revenue / maxValue) * maxHeight;
-            final double expenseHeight = (item.expense / maxValue) * maxHeight;
+              // Calculate bar heights - relative to chartHeight
+              final double revenueHeight = (item.revenue / maxValue) * chartHeight;
+              final double expenseHeight = (item.expense / maxValue) * chartHeight;
 
-            return SizedBox(
-              width: barSpacing,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Bars
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      // Revenue bar
-                      _buildBar(
-                        height: revenueHeight,
-                        color: const Color(0xFF136C3A),
-                        value: item.revenue,
-                        maxHeight: maxHeight,
-                      ),
-                      const SizedBox(width: 4),
-                      // Expense bar
-                      _buildBar(
-                        height: expenseHeight,
-                        color: const Color(0xFFE7B776),
-                        value: item.expense,
-                        maxHeight: maxHeight,
-                      ),
-                    ],
-                  ),
+              return SizedBox(
+                width: barSpacing,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Bars
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        // Revenue bar
+                        _buildBar(
+                          height: revenueHeight,
+                          color: const Color(0xFF136C3A),
+                          value: item.revenue,
+                          maxHeight: chartHeight,
+                        ),
+                        const SizedBox(width: 4),
+                        // Expense bar
+                        _buildBar(
+                          height: expenseHeight,
+                          color: const Color(0xFFE7B776),
+                          value: item.expense,
+                          maxHeight: chartHeight,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ),
+        ),
 
-                  // Date label
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: AppText(
-                      'Jan ${item.date.day}',
-                      style: const TextStyle(
-                        fontFamily: 'Work Sans',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10.5,
-
-                        color: Color(0xFFA9AEB3),
-                      ),
+        // X-axis Labels - positioned at the bottom
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 20,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: List.generate(data.length, (index) {
+              final item = data[index];
+              return SizedBox(
+                width: barSpacing,
+                child: Center(
+                  child: AppText(
+                    DateFormatter.formatDate(item.date, pattern: "MMM d"),
+                    style: const TextStyle(
+                      fontFamily: 'Work Sans',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 10.5,
+                      color: Color(0xFFA9AEB3),
                     ),
                   ),
-                ],
-              ),
-            );
-          }),
+                ),
+              );
+            }),
+          ),
         ),
       ],
     );
@@ -384,52 +420,32 @@ class RevenueVsExpenseChart extends StatelessWidget {
     final double displayHeight = safeHeight < 10 && safeHeight > 0 ? 10.0 : safeHeight;
 
     // Limit maximum bar width based on available space
-    final double barWidth = 32;
+    const double barWidth = 32;
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        if (height > 30)
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-            child: AppText(
-              value >= 1000 ? '${(value / 1000).toStringAsFixed(1)}k' : value.toStringAsFixed(0),
-              style: const TextStyle(
-                fontFamily: 'Work Sans',
-                fontWeight: FontWeight.w400,
-                fontSize: 10.5,
-                letterSpacing: -0.04,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        Container(
-          width: barWidth,
-          height: displayHeight,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          alignment: Alignment.center,
-          child: height <= 30 && height >= 20
-              ? AppText(
-                  value >= 1000 ? '${(value / 1000).toStringAsFixed(1)}k' : value.toStringAsFixed(0),
-                  style: const TextStyle(
-                    fontFamily: 'Work Sans',
-                    fontWeight: FontWeight.w400,
-                    fontSize: 10.5,
-                    letterSpacing: -0.04,
-                    color: Colors.white,
-                  ),
-                )
-              : null,
+    return Container(
+      width: barWidth,
+      height: displayHeight,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      alignment: Alignment.topCenter,
+      child: AppText(
+        CurrencyFormatter.formatToShortK(value),
+        style: const TextStyle(
+          fontFamily: 'Work Sans',
+          fontWeight: FontWeight.w400,
+          fontSize: 10.5,
+          letterSpacing: -0.04,
+          color: Colors.white,
         ),
-      ],
+      ),
     );
   }
 
   Widget _buildGridLines(BoxConstraints constraints) {
-    return Column(
+    return Stack(
+      // Ubah dari Column ke Stack
       children: List.generate(5, (index) {
         // Divide height into 5 equal parts
         final lineY = index * (constraints.maxHeight - 32) / 4;
@@ -439,7 +455,7 @@ class RevenueVsExpenseChart extends StatelessWidget {
           right: 0,
           child: Container(
             height: 1,
-            color: const Color(0xFFEAEEF2), // Light border color from CSS
+            color: const Color(0xFFEAEEF2),
           ),
         );
       }),

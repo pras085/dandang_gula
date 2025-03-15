@@ -111,12 +111,12 @@ class TotalIncomeChart extends StatelessWidget {
                           padding: const EdgeInsets.only(top: 8.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: data
-                                .map((point) => AppText(
-                                      'Jan ${point.label}',
-                                      style: AppTextStyles.bodySmall.copyWith(color: AppColors.textTertiary),
-                                    ))
-                                .toList(),
+                            children: data.map((point) {
+                              return AppText(
+                                point.label,
+                                style: AppTextStyles.bodySmall.copyWith(color: AppColors.textTertiary),
+                              );
+                            }).toList(),
                           ),
                         ),
                       ],

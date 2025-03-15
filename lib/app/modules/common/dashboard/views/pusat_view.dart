@@ -110,42 +110,44 @@ class PusatDashboardView extends StatelessWidget {
 
   Widget _buildSalesPerformanceCharts(BuildContext context) {
     return Obx(() {
-      final branches = controller.branchRepository.branches.take(1).toList();
+      final branches = controller.branchRepository.branches;
 
-      return Row(
-        children: branches.asMap().entries.map((entry) {
-          final index = entry.key;
-          final branch = entry.value;
-
-          return Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Sales Performance', style: Theme.of(context).textTheme.titleMedium),
-                          Text(branch.name, style: Theme.of(context).textTheme.bodySmall),
-                          const SizedBox(height: 16),
-                          Expanded(
-                            child: SalesPerformanceChart(
-                              data: controller.dashboardRepository.incomeChartData.value,
-                              branchName: branch.name,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                if (index < branches.length - 1) const SizedBox(width: 16),
-              ],
+      if (branches.isEmpty) {
+        return Container(
+          height: 200,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Center(
+            child: AppText(
+              'Data cabang belum tersedia',
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textTertiary),
             ),
+          ),
+        );
+      }
+
+      // Menggunakan Wrap untuk layout yang fleksibel
+      return GridView.builder(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: MediaQuery.of(context).size.width > 800 ? 3 : 1, // 2 columns on large screens, 1 on small
+          childAspectRatio: 380 / 382, // Maintain aspect ratio
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+        ),
+        itemCount: branches.length,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(), // Prevent grid from scrolling
+        itemBuilder: (context, index) {
+          final branch = branches[index];
+          final branchData = controller.branchesSalesData[branch.id] ?? [];
+          return BranchSalesPerformanceWidget(
+            branch: branch,
+            data: branchData,
           );
-        }).toList(),
+        },
       );
     });
   }

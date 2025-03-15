@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart'; // Add this import for number formatting
 import '../../../../config/theme/app_colors.dart';
 import '../../../../config/theme/app_text_styles.dart';
 import '../../../../global_widgets/buttons/app_button.dart';
@@ -15,6 +16,7 @@ class SettingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<SettingController>();
+final NumberFormat currencyFormat = NumberFormat("#,##0.00", "en_US"); // Define the number format
 
     return ColoredBox(
       color: Colors.white,

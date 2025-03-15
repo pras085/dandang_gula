@@ -1,54 +1,87 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../config/theme/app_colors.dart';
 import '../../config/theme/app_text_styles.dart';
+import '../../data/models/branch_model.dart';
 import '../../data/models/chart_data_model.dart';
 import '../text/app_text.dart';
 
-class SalesPerformanceChart extends StatelessWidget {
+class BranchSalesPerformanceWidget extends StatelessWidget {
+  final Branch branch;
   final List<ChartData> data;
-  final String branchName;
-  final double height;
 
-  const SalesPerformanceChart({
+  const BranchSalesPerformanceWidget({
     super.key,
+    required this.branch,
     required this.data,
-    required this.branchName,
-    this.height = 250,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        AppText(
-          'Sales Performance',
-          style: AppTextStyles.h3,
-        ),
-        AppText(
-          branchName,
-          style: AppTextStyles.bodySmall.copyWith(
-            color: AppColors.textSecondary,
+    return Container(
+      // width: 380,
+      height: 382,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
-        ),
-        const SizedBox(height: 16),
-        Expanded(
-          child: data.isEmpty
-              ? Center(
-                  child: AppText(
-                    'No data available',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textTertiary,
+        ],
+      ),
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Sales Performance',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          Text(
+            branch.name,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: data.isEmpty
+                ? Center(
+                    child: AppText(
+                      'No data available',
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.textTertiary,
+                      ),
                     ),
+                  )
+                : SalesPerformanceChart(
+                    data: data,
+                    branchName: branch.name,
                   ),
-                )
-              : CustomPaint(
-                  size: Size.infinite,
-                  painter: _LineChartPainter(data),
-                  child: _buildLabels(),
-                ),
-        ),
-      ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SalesPerformanceChart extends StatelessWidget {
+  final List<ChartData> data;
+  final String branchName;
+
+  const SalesPerformanceChart({
+    Key? key,
+    required this.data,
+    required this.branchName,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: Size.infinite,
+      painter: _LineChartPainter(data),
+      child: _buildLabels(),
     );
   }
 
@@ -107,14 +140,14 @@ class SalesPerformanceChart extends StatelessWidget {
           padding: const EdgeInsets.only(top: 4.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: data
-                .map((point) => AppText(
-                      'Jan ${point.label}',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.textTertiary,
-                      ),
-                    ))
-                .toList(),
+            children: data.map((point) {
+              return AppText(
+                point.label,
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.textTertiary,
+                ),
+              );
+            }).toList(),
           ),
         ),
       ],

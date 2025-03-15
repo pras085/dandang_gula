@@ -17,171 +17,166 @@ class GudangDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        controller.refreshData();
-      },
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Widget untuk periode data (tampilan filter)
-            _buildPeriodSelector(),
-            const SizedBox(height: 24),
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Widget untuk periode data (tampilan filter)
+          _buildPeriodSelector(),
+          const SizedBox(height: 24),
 
-            // Row dengan card informasi total bahan
-            const SummaryCard(
-              title: 'Total Bahan',
-              value: '120',
-              secondaryValue: 'Items',
-              icon: Icons.category,
+          // Row dengan card informasi total bahan
+          const SummaryCard(
+            title: 'Total Bahan',
+            value: '120',
+            secondaryValue: 'Items',
+            icon: Icons.category,
+          ),
+          const SizedBox(height: 16),
+
+          // Informasi Stok Masuk
+          const AppCard(
+            title: 'Stok Masuk',
+            action: AppText(
+              'Hari ini',
+              style: TextStyle(fontStyle: FontStyle.italic),
             ),
-            const SizedBox(height: 16),
-
-            // Informasi Stok Masuk
-            const AppCard(
-              title: 'Stok Masuk',
-              action: AppText(
-                'Hari ini',
-                style: TextStyle(fontStyle: FontStyle.italic),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppText('Jumlah items'),
-                  AppText(
-                    '15',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 8),
-                  AppText('Total'),
-                  AppText(
-                    'Rp 1.000.000',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Stok Terbuang
-            AppCard(
-              title: 'Stok Terbuang',
-              action: const AppText(
-                'Hari ini',
-                style: TextStyle(fontStyle: FontStyle.italic),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Progress bars untuk alasan pembuangan stok
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const AppText('Expired'),
-                      const SizedBox(height: 4),
-                      LinearProgressIndicator(
-                        value: 0.7,
-                        backgroundColor: Colors.grey[200],
-                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
-                        minHeight: 8,
-                      ),
-                      const SizedBox(height: 8),
-                      const AppText('Kesalahan Produksi'),
-                      const SizedBox(height: 4),
-                      LinearProgressIndicator(
-                        value: 0.4,
-                        backgroundColor: Colors.grey[200],
-                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
-                        minHeight: 8,
-                      ),
-                      const SizedBox(height: 8),
-                      const AppText('Lain-lain'),
-                      const SizedBox(height: 4),
-                      LinearProgressIndicator(
-                        value: 0.2,
-                        backgroundColor: Colors.grey[200],
-                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
-                        minHeight: 8,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Grafik Statistik Arus Stok
-            AppCard(
-              title: 'Statistik arus stok',
-              action: const AppText('Hari ini - Pk 00:00 (GMT+07)'),
-              child: SizedBox(
-                height: 250,
-                child: StockFlowChart(
-                  data: controller.stockFlowData,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText('Jumlah items'),
+                AppText(
+                  '15',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
+                SizedBox(height: 8),
+                AppText('Total'),
+                AppText(
+                  'Rp 1.000.000',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Stok Terbuang
+          AppCard(
+            title: 'Stok Terbuang',
+            action: const AppText(
+              'Hari ini',
+              style: TextStyle(fontStyle: FontStyle.italic),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Progress bars untuk alasan pembuangan stok
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const AppText('Expired'),
+                    const SizedBox(height: 4),
+                    LinearProgressIndicator(
+                      value: 0.7,
+                      backgroundColor: Colors.grey[200],
+                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
+                      minHeight: 8,
+                    ),
+                    const SizedBox(height: 8),
+                    const AppText('Kesalahan Produksi'),
+                    const SizedBox(height: 4),
+                    LinearProgressIndicator(
+                      value: 0.4,
+                      backgroundColor: Colors.grey[200],
+                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
+                      minHeight: 8,
+                    ),
+                    const SizedBox(height: 8),
+                    const AppText('Lain-lain'),
+                    const SizedBox(height: 4),
+                    LinearProgressIndicator(
+                      value: 0.2,
+                      backgroundColor: Colors.grey[200],
+                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
+                      minHeight: 8,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Grafik Statistik Arus Stok
+          AppCard(
+            title: 'Statistik arus stok',
+            action: const AppText('Hari ini - Pk 00:00 (GMT+07)'),
+            child: SizedBox(
+              height: 250,
+              child: StockFlowChart(
+                data: controller.stockFlowData,
               ),
             ),
-            const SizedBox(height: 24),
+          ),
+          const SizedBox(height: 24),
 
-            // Stock Alert
-            StockAlertTable(
-              title: 'Stock alert',
-              stockAlerts: controller.stockAlerts,
-              onViewAll: () {
-                // Action untuk melihat semua stock alert
+          // Stock Alert
+          StockAlertTable(
+            title: 'Stock alert',
+            stockAlerts: controller.stockAlerts,
+            onViewAll: () {
+              // Action untuk melihat semua stock alert
+            },
+          ),
+          const SizedBox(height: 24),
+
+          // Heat Map penggunaan stock
+          AppCard(
+            title: 'Metric Stock usage',
+            child: SizedBox(
+              height: 250,
+              child: _buildStockUsageHeatmap(),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Penggunaan Stok by Group dengan pie chart
+          AppCard(
+            title: 'Penggunaan Stok bahan by Group',
+            action: const AppText(
+              'Hari ini',
+              style: TextStyle(fontStyle: FontStyle.italic),
+            ),
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 200,
+                  child: StockUsageChart(
+                    data: controller.stockUsageData,
+                    isDoughnut: true,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Floating Action Button di bottom untuk mengakses menu Catat stok masuk
+          Align(
+            alignment: Alignment.centerRight,
+            child: AppButton(
+              label: 'Catat stok masuk',
+              prefixIcon: Icons.add,
+              variant: ButtonVariant.primary,
+              onPressed: () {
+                Get.toNamed(Routes.STOCK_IN);
               },
             ),
-            const SizedBox(height: 24),
-
-            // Heat Map penggunaan stock
-            AppCard(
-              title: 'Metric Stock usage',
-              child: SizedBox(
-                height: 250,
-                child: _buildStockUsageHeatmap(),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Penggunaan Stok by Group dengan pie chart
-            AppCard(
-              title: 'Penggunaan Stok bahan by Group',
-              action: const AppText(
-                'Hari ini',
-                style: TextStyle(fontStyle: FontStyle.italic),
-              ),
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 200,
-                    child: StockUsageChart(
-                      data: controller.stockUsageData,
-                      isDoughnut: true,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Floating Action Button di bottom untuk mengakses menu Catat stok masuk
-            Align(
-              alignment: Alignment.centerRight,
-              child: AppButton(
-                label: 'Catat stok masuk',
-                prefixIcon: Icons.add,
-                variant: ButtonVariant.primary,
-                onPressed: () {
-                  Get.toNamed(Routes.STOCK_IN);
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
+          ),
+          const SizedBox(height: 16),
+        ],
       ),
     );
   }

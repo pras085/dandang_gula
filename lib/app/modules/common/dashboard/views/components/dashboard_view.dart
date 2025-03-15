@@ -52,7 +52,7 @@ class DashboardView extends GetView<DashboardController> {
       return AppLayout(
         content: dashboardContent,
         showDatePicker: controller.userRole.value != 'admin',
-        onRefresh: () => controller.refreshData(),
+        onRefresh: () => controller.initializeData(),
       );
     });
   }

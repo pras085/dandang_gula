@@ -70,6 +70,20 @@ class CurrencyFormatter {
     formatter.maximumFractionDigits = decimalDigits;
     return formatter.format(amount);
   }
+
+  static String formatToShortK(double number) {
+    // Bagi dengan 1000 untuk mendapatkan nilai dalam ribuan
+    double inThousands = number / 1000;
+
+    // Ambil dua digit pertama
+    int twoDigits = inThousands.toInt();
+    if (twoDigits >= 100) {
+      twoDigits = (twoDigits ~/ 10); // Ambil puluhan jika nilai ribuan >= 100
+    }
+
+    // Tambahkan 'k' di belakang
+    return '${twoDigits}k';
+  }
 }
 
 /// Utility class to manage asset paths
@@ -188,7 +202,7 @@ class DateFormatter {
     if (date == null) {
       return "";
     }
-    return DateFormat('dd MMMM yyyy', 'id_ID').format(date);
+    return DateFormat('dd MMMM yyyy', 'id_ID').format(date.toLocal());
   }
 
   /// Format date with custom pattern
@@ -196,16 +210,16 @@ class DateFormatter {
     if (date == null) {
       return "";
     }
-    return DateFormat(pattern).format(date);
+    return DateFormat(pattern).format(date.toLocal());
   }
 
   /// Format date and time
-  static String formatDateTime(DateTime? dateTime) {
-    if (dateTime == null) {
+  static String formatDateTime(DateTime? date) {
+    if (date == null) {
       return "";
     }
 
-    return DateFormat('dd/MM/yyyy HH:mm').format(dateTime);
+    return DateFormat('dd/MM/yyyy HH:mm').format(date.toLocal());
   }
 }
 
