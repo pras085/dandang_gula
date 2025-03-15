@@ -26,7 +26,6 @@ class AppLayout extends StatelessWidget {
   final Widget? bottomNavigationBar;
   final bool showBackButton;
   final bool showDatePicker;
-  final VoidCallback? onMenuPressed;
   final Future<void> Function()? onRefresh;
 
   // Get auth service for user role
@@ -39,7 +38,6 @@ class AppLayout extends StatelessWidget {
     this.bottomNavigationBar,
     this.showBackButton = false,
     this.showDatePicker = true,
-    this.onMenuPressed,
     this.onRefresh,
   });
 
@@ -136,9 +134,11 @@ class AppLayout extends StatelessWidget {
     return Expanded(
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        child: Row(
-          children: _getNavigationItemsByRole(),
-        ),
+        child: Obx(() {
+          return Row(
+            children: _getNavigationItemsByRole(),
+          );
+        }),
       ),
     );
   }
@@ -146,17 +146,17 @@ class AppLayout extends StatelessWidget {
   List<Widget> _getNavigationItemsByRole() {
     final navItems = <Widget>[];
     final currentRole = _getUserRoleEnum();
+    final currentRoute = Get.currentRoute;
 
     // Add Dashboard button for all roles
     navItems.add(
       _buildNavItem(
         'Dashboard',
         AppIcons.dashboard,
-        true,
+        currentRoute == Routes.DASHBOARD,
         () => Get.toNamed(Routes.DASHBOARD),
       ),
     );
-
     // Add role-specific menu items
     switch (currentRole) {
       case UserRole.admin:
@@ -164,26 +164,20 @@ class AppLayout extends StatelessWidget {
           _buildNavItem(
             'Manajemen Cabang',
             AppIcons.orderDetails,
-            false,
-            () {
-              Get.toNamed(Routes.BRANCH_MANAGEMENT);
-            },
+            currentRoute == Routes.BRANCH_MANAGEMENT,
+            () => Get.toNamed(Routes.BRANCH_MANAGEMENT),
           ),
           _buildNavItem(
             'Management User',
             AppIcons.userAccess,
-            false,
-            () {
-              Get.toNamed(Routes.USER_MANAGEMENT);
-            },
+            currentRoute == Routes.USER_MANAGEMENT,
+            () => Get.toNamed(Routes.USER_MANAGEMENT),
           ),
           _buildNavItem(
             'Laporan',
             AppIcons.reportData,
-            false,
-            () {
-              Get.toNamed(Routes.REPORTS);
-            },
+            currentRoute == Routes.REPORTS,
+            () => Get.toNamed(Routes.REPORTS),
           ),
         ]);
         break;
@@ -193,26 +187,20 @@ class AppLayout extends StatelessWidget {
           _buildNavItem(
             'Pesanan',
             AppIcons.orderDetails,
-            false,
-            () {
-              Get.toNamed(Routes.ORDERS);
-            },
+            currentRoute == Routes.ORDERS,
+            () => Get.toNamed(Routes.ORDERS),
           ),
           _buildNavItem(
             'Laporan',
             AppIcons.reportData,
-            false,
-            () {
-              Get.toNamed(Routes.REPORTS);
-            },
+            currentRoute == Routes.REPORTS,
+            () => Get.toNamed(Routes.REPORTS),
           ),
           _buildNavItem(
             'Presensi',
             AppIcons.userAccess,
-            false,
-            () {
-              Get.toNamed(Routes.ATTENDANCE);
-            },
+            currentRoute == Routes.ATTENDANCE,
+            () => Get.toNamed(Routes.ATTENDANCE),
           ),
         ]);
         break;
@@ -222,18 +210,14 @@ class AppLayout extends StatelessWidget {
           _buildNavItem(
             'Stok Bahan',
             AppIcons.wheat,
-            false,
-            () {
-              Get.toNamed(Routes.STOCK_IN);
-            },
+            currentRoute == Routes.STOCK_IN,
+            () => Get.toNamed(Routes.STOCK_IN),
           ),
           _buildNavItem(
             'Laporan',
             AppIcons.reportData,
-            false,
-            () {
-              Get.toNamed(Routes.REPORTS);
-            },
+            currentRoute == Routes.REPORTS,
+            () => Get.toNamed(Routes.REPORTS),
           ),
         ]);
         break;
@@ -243,26 +227,20 @@ class AppLayout extends StatelessWidget {
           _buildNavItem(
             'Manajemen Cabang',
             AppIcons.orderDetails,
-            false,
-            () {
-              Get.toNamed(Routes.BRANCH_MANAGEMENT);
-            },
+            currentRoute == Routes.BRANCH_MANAGEMENT,
+            () => Get.toNamed(Routes.BRANCH_MANAGEMENT),
           ),
           _buildNavItem(
             'Management User',
             AppIcons.userAccess,
-            false,
-            () {
-              Get.toNamed(Routes.USER_MANAGEMENT);
-            },
+            currentRoute == Routes.USER_MANAGEMENT,
+            () => Get.toNamed(Routes.USER_MANAGEMENT),
           ),
           _buildNavItem(
             'Laporan',
             AppIcons.reportData,
-            false,
-            () {
-              Get.toNamed(Routes.REPORTS);
-            },
+            currentRoute == Routes.REPORTS,
+            () => Get.toNamed(Routes.REPORTS),
           ),
         ]);
         break;
@@ -272,42 +250,32 @@ class AppLayout extends StatelessWidget {
           _buildNavItem(
             'Management Menu',
             AppIcons.restaurant,
-            false,
-            () {
-              Get.toNamed(Routes.MENU_MANAGEMENT);
-            },
+            currentRoute == Routes.MENU_MANAGEMENT,
+            () => Get.toNamed(Routes.MENU_MANAGEMENT),
           ),
           _buildNavItem(
             'Stok Bahan',
             AppIcons.wheat,
-            false,
-            () {
-              Get.toNamed(Routes.INVENTORY);
-            },
+            currentRoute == Routes.INVENTORY,
+            () => Get.toNamed(Routes.INVENTORY),
           ),
           _buildNavItem(
             'Pesanan',
             AppIcons.orderDetails,
-            false,
-            () {
-              Get.toNamed(Routes.ORDERS);
-            },
+            currentRoute == Routes.ORDERS,
+            () => Get.toNamed(Routes.ORDERS),
           ),
           _buildNavItem(
             'Laporan',
             AppIcons.reportData,
-            false,
-            () {
-              Get.toNamed(Routes.REPORTS);
-            },
+            currentRoute == Routes.REPORTS,
+            () => Get.toNamed(Routes.REPORTS),
           ),
           _buildNavItem(
             'Management User',
             AppIcons.userAccess,
-            false,
-            () {
-              Get.toNamed(Routes.USER_MANAGEMENT);
-            },
+            currentRoute == Routes.USER_MANAGEMENT,
+            () => Get.toNamed(Routes.USER_MANAGEMENT),
           ),
         ]);
         break;

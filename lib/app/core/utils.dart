@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../config/constant/app_fonts.dart';
+import '../config/constant/app_strings.dart';
 import '../config/theme/app_colors.dart';
 
 /// Utility class to manage font styles
@@ -223,5 +224,31 @@ class ValidationUtils {
   static bool isValidPhone(String phone) {
     final phoneRegex = RegExp(r'^(\+62|62|0)8[1-9][0-9]{6,9}$');
     return phoneRegex.hasMatch(phone);
+  }
+}
+
+class ErrorMessages {
+  static String getErrorMessage(dynamic error) {
+    if (error == null) {
+      return AppStrings.generalError;
+    }
+
+    final String errorString = error.toString().toLowerCase();
+
+    if (errorString.contains('socket') || errorString.contains('connection refused')) {
+      return AppStrings.noInternetError;
+    } else if (errorString.contains('timeout')) {
+      return AppStrings.timeoutError;
+    } else if (errorString.contains('not found')) {
+      return AppStrings.notFoundError;
+    } else if (errorString.contains('server')) {
+      return AppStrings.serverError;
+    } else if (errorString.contains('validation')) {
+      return AppStrings.validationError;
+    } else if (errorString.contains('unauthorized') || errorString.contains('authentication')) {
+      return AppStrings.authError;
+    }
+
+    return error.toString();
   }
 }

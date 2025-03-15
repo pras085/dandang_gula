@@ -3,7 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+import 'app/config/constant/app_constants.dart';
 import 'app/config/theme/app_theme.dart';
+import 'app/data/repositories/branch_repository.dart';
+import 'app/data/repositories/dashboard_repository.dart';
+import 'app/data/repositories/inventory_repository.dart';
+import 'app/data/repositories/order_repository.dart';
+import 'app/data/repositories/user_repository.dart';
+import 'app/data/services/api_service.dart';
 import 'app/data/services/auth_service.dart';
 import 'app/routes/app_pages.dart';
 
@@ -15,8 +22,8 @@ void main() async {
     DeviceOrientation.landscapeRight,
   ]);
 
-  // Initialize AuthService before running app
   final authService = await Get.putAsync(() => AuthService().init());
+  Get.lazyPut<ApiService>(() => ApiService(baseUrl: AppConstants.baseUrl, apiKey: ''));
   final initialRoute = authService.isLoggedIn ? Routes.DASHBOARD : Routes.LOGIN;
 
   runApp(

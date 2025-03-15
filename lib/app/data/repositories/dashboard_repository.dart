@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
 
 import '../models/chart_data_model.dart';
-import '../models/branch_model.dart';
 import '../models/revenue_expense_data.dart';
+import '../services/api_service.dart';
 import 'branch_repository.dart';
 
 class DashboardSummary {
@@ -17,14 +17,32 @@ class DashboardSummary {
   });
 }
 
-class DashboardRepository {
-  // TODO DEVELOP
-  // final ApiService _apiService = Get.find<ApiService>();
+abstract class DashboardRepository {
+  // Observable values
+  Rx<DashboardSummary> get dashboardSummary;
+  RxList<ChartData> get incomeChartData;
+  RxList<RevenueExpenseData> get revenueExpenseData;
 
+  // Methods
+  Future<void> fetchDashboardSummary();
+  Future<void> fetchRevenueExpenseData(String branchId);
+  Future<void> fetchSalesPerformanceData(String branchId);
+  Future<double> getTotalRevenue();
+  Future<double> getTotalProfit();
+  Future<double> getRevenueGrowth();
+  Future<List<ChartData>> getRevenueChartData();
+}
+
+class DashboardRepositoryImpl implements DashboardRepository {
   final BranchRepository _branchRepository = Get.find<BranchRepository>();
+  final ApiService? _apiService = Get.isRegistered<ApiService>() ? Get.find<ApiService>() : null;
+
+  // Cache data per branch
+  final _salesPerformanceCache = <String, List<ChartData>>{};
 
   // Observable values
-  final Rx<DashboardSummary> dashboardSummary = Rx<DashboardSummary>(
+  @override
+  final dashboardSummary = Rx<DashboardSummary>(
     DashboardSummary(
       totalIncome: 0,
       netProfit: 0,
@@ -32,153 +50,174 @@ class DashboardRepository {
     ),
   );
 
-  final RxList<ChartData> incomeChartData = <ChartData>[].obs;
-  final RxList<RevenueExpenseData> revenueExpenseData = <RevenueExpenseData>[].obs;
+  @override
+  final incomeChartData = <ChartData>[].obs;
+
+  @override
+  final revenueExpenseData = <RevenueExpenseData>[].obs;
 
   // Fetch dashboard summary data
+  @override
   Future<void> fetchDashboardSummary() async {
     try {
-      // In a real implementation, you would call the API service
-      // final response = await _apiService.get('/dashboard/summary');
+      if (_apiService != null) {
+        // Try to fetch from API
+        final response = await _apiService.get('/dashboard/summary');
 
-      // For demonstration, using dummy data
+        dashboardSummary.value = DashboardSummary(
+          totalIncome: response['totalIncome'] ?? 0.0,
+          netProfit: response['netProfit'] ?? 0.0,
+          percentChange: response['percentChange'] ?? 0.0,
+        );
+        return;
+      }
+    } catch (e) {
+      print('Error fetching dashboard summary: $e');
+      // Fallback to mock data
       await Future.delayed(const Duration(milliseconds: 500));
-
-      // Update the observable with the fetched data
       dashboardSummary.value = DashboardSummary(
         totalIncome: 50000000,
         netProfit: 3000000,
         percentChange: -9.75,
       );
-    } catch (e) {
-      // Handle error
-      print('Error fetching dashboard summary: $e');
+    } finally {
+      dashboardSummary.refresh();
     }
   }
 
   // Fetch revenue vs expense data for a specific branch
+  @override
   Future<void> fetchRevenueExpenseData(String branchId) async {
     try {
-      // This line ensures we get actual data for the selected branch
       final data = await _branchRepository.getBranchRevenueExpenseData(branchId);
-
-      // Important: we need to update the observable
       revenueExpenseData.value = data;
     } catch (e) {
       print('Error fetching revenue expense data: $e');
-      // Set empty list on error
-      revenueExpenseData.value = [];
+      revenueExpenseData.value = _getDefaultRevenueExpenseData(branchId);
     }
   }
 
+  // Helper method to create mock revenue/expense data
+  List<RevenueExpenseData> _getDefaultRevenueExpenseData(String branchId) {
+    final data = <RevenueExpenseData>[];
+    final int seedMultiplier = int.tryParse(branchId) ?? 1;
+
+    for (int i = 1; i <= 8; i++) {
+      data.add(RevenueExpenseData(
+        date: DateTime(2023, 1, i + 10),
+        revenue: 1500000 + (i * 100000 * (seedMultiplier * 0.2)),
+        expense: 1000000 + (i * 50000 * (i % 3 == 0 ? 1.2 : 0.8) * (seedMultiplier * 0.15)),
+      ));
+    }
+
+    return data;
+  }
+
   // Fetch sales performance data for a specific branch
+  @override
   Future<void> fetchSalesPerformanceData(String branchId) async {
     try {
-      // In a real implementation, you would call the API service
-      // final response = await _apiService.get('/dashboard/sales-performance/$branchId');
+      // Return cached data if available
+      if (_salesPerformanceCache.containsKey(branchId)) {
+        incomeChartData.value = _salesPerformanceCache[branchId]!;
+        return;
+      }
 
-      // For demonstration, using dummy data
+      // Try to fetch from API
+      if (_apiService != null) {
+        try {
+          final response = await _apiService.get('/dashboard/sales-performance/$branchId');
+          final data = (response as List).map((item) => ChartData.fromJson(item)).toList();
+
+          _salesPerformanceCache[branchId] = data;
+          incomeChartData.value = data;
+          return;
+        } catch (e) {
+          print('API error, falling back to repository: $e');
+        }
+      }
+
+      // Fallback to branch repository
       final data = await _branchRepository.getBranchRevenueChartData(branchId);
-
+      _salesPerformanceCache[branchId] = data;
       incomeChartData.value = data;
-
-      // await Future.delayed(const Duration(milliseconds: 500));
-
-      // return [
-      //   ChartData(label: 'Senin', value: 1200000,),
-      //   ChartData(label: 'Selasa', value: 1450000),
-      //   ChartData(label: 'Rabu', value: 1300000),
-      //   ChartData(label: 'Kamis', value: 1550000),
-      //   ChartData(label: 'Jumat', value: 1800000),
-      //   ChartData(label: 'Sabtu', value: 2100000),
-      //   ChartData(label: 'Minggu', value: 1900000),
-      // ];
     } catch (e) {
-      // Handle error
       print('Error fetching sales performance data: $e');
       incomeChartData.value = [];
     }
   }
 
+  @override
   Future<double> getTotalRevenue() async {
-    // In a real app, this would call an API
-    await Future.delayed(const Duration(milliseconds: 500));
-    return 50000000;
+    try {
+      if (_apiService != null) {
+        final response = await _apiService.get('/dashboard/total-revenue');
+        return response['revenue'] ?? 0.0;
+      }
+
+      await Future.delayed(const Duration(milliseconds: 500));
+      return 50000000;
+    } catch (e) {
+      print('Error fetching total revenue: $e');
+      return 0.0;
+    }
   }
 
+  @override
   Future<double> getTotalProfit() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    return 3000000;
+    try {
+      if (_apiService != null) {
+        final response = await _apiService.get('/dashboard/total-profit');
+        return response['profit'] ?? 0.0;
+      }
+
+      await Future.delayed(const Duration(milliseconds: 500));
+      return 3000000;
+    } catch (e) {
+      print('Error fetching total profit: $e');
+      return 0.0;
+    }
   }
 
+  @override
   Future<double> getRevenueGrowth() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    return -9.75;
+    try {
+      if (_apiService != null) {
+        final response = await _apiService.get('/dashboard/revenue-growth');
+        return response['growth'] ?? 0.0;
+      }
+
+      await Future.delayed(const Duration(milliseconds: 500));
+      return -9.75;
+    } catch (e) {
+      print('Error fetching revenue growth: $e');
+      return 0.0;
+    }
   }
 
+  @override
   Future<List<ChartData>> getRevenueChartData() async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    try {
+      if (_apiService != null) {
+        final response = await _apiService.get('/dashboard/revenue-chart');
+        return (response as List).map((item) => ChartData.fromJson(item)).toList();
+      }
 
-    final data = <ChartData>[];
+      await Future.delayed(const Duration(milliseconds: 500));
+      final data = <ChartData>[];
 
-    // Generate sample data
-    for (int i = 1; i <= 8; i++) {
-      data.add(ChartData(
-        label: 'Jan $i',
-        value: 10000000 + (i * 500000 * (i % 3 == 0 ? -1 : 1)),
-      ));
+      // Generate sample data
+      for (int i = 1; i <= 8; i++) {
+        data.add(ChartData(
+          label: 'Jan $i',
+          value: 10000000 + (i * 500000 * (i % 3 == 0 ? -1 : 1)),
+        ));
+      }
+
+      return data;
+    } catch (e) {
+      print('Error fetching revenue chart data: $e');
+      return [];
     }
-
-    return data;
-  }
-
-  Future<List<Branch>> getBranches() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    return [
-      Branch(
-        id: '1',
-        name: 'Kedai Dandang Gula MT. Haryono',
-        address: 'Jl. MT. Haryono No. 10',
-        phone: '021-1234567',
-        email: 'haryono@dandanggula.com',
-        managerId: '101',
-        managerName: 'Joe Heiden',
-      ),
-      Branch(
-        id: '2',
-        name: 'Ngelaras Rasa MT. Haryono',
-        address: 'Jl. MT. Haryono No. 15',
-        phone: '021-1234568',
-        email: 'haryono@ngelarasrasa.com',
-        managerId: '102',
-        managerName: 'Martha Elbert',
-      ),
-      Branch(
-        id: '3',
-        name: 'Ngelaras Rasa Thamrin',
-        address: 'Jl. MH. Thamrin No. 25',
-        phone: '021-1234569',
-        email: 'thamrin@ngelarasrasa.com',
-        managerId: '103',
-        managerName: 'Jun Aizawa',
-      ),
-    ];
-  }
-
-  Future<List<ChartData>> getBranchRevenueData(String branchId) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    final data = <ChartData>[];
-
-    // Generate sample data
-    for (int i = 1; i <= 8; i++) {
-      data.add(ChartData(
-        label: 'Jan $i',
-        value: 5000000 + (i * 300000 * (i % 4 == 0 ? -1 : 1)),
-      ));
-    }
-
-    return data;
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class Branch {
   final String id;
   final String name;
@@ -6,13 +8,13 @@ class Branch {
   final String? email;
   final String? managerId;
   final String? managerName;
-  
+
   // Financial data
   final double income;
   final double cogs;
   final double netProfit;
   final double percentChange;
-  
+
   Branch({
     required this.id,
     required this.name,
@@ -26,6 +28,40 @@ class Branch {
     this.netProfit = 0.0,
     this.percentChange = 0.0,
   });
+
+  // Create from JSON
+  factory Branch.fromJson(Map<String, dynamic> json) {
+    return Branch(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      address: json['address'] as String?,
+      phone: json['phone'] as String?,
+      email: json['email'] as String?,
+      managerId: json['managerId'] as String?,
+      managerName: json['managerName'] as String?,
+      income: json['income'] != null ? double.parse(json['income'].toString()) : 0.0,
+      cogs: json['cogs'] != null ? double.parse(json['cogs'].toString()) : 0.0,
+      netProfit: json['netProfit'] != null ? double.parse(json['netProfit'].toString()) : 0.0,
+      percentChange: json['percentChange'] != null ? double.parse(json['percentChange'].toString()) : 0.0,
+    );
+  }
+
+  // Convert to JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      if (address != null) 'address': address,
+      if (phone != null) 'phone': phone,
+      if (email != null) 'email': email,
+      if (managerId != null) 'managerId': managerId,
+      if (managerName != null) 'managerName': managerName,
+      'income': income,
+      'cogs': cogs,
+      'netProfit': netProfit,
+      'percentChange': percentChange,
+    };
+  }
 
   // Create a copy with updates
   Branch copyWith({
@@ -60,9 +96,7 @@ class Branch {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is Branch &&
-        other.id == id &&
-        other.name == name;
+    return other is Branch && other.id == id && other.name == name;
   }
 
   @override

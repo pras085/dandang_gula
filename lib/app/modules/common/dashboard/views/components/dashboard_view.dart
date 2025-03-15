@@ -24,9 +24,9 @@ class DashboardView extends GetView<DashboardController> {
       }
 
       // Kasir view memiliki layout khusus
-      // if (controller.userRole.value == 'kasir') {
-      //   return KasirDashboardView(controller: controller);
-      // }
+      if (controller.userRole.value == 'kasir') {
+        return KasirDashboardView(controller: controller);
+      }
 
       // Untuk role lainnya, gunakan AppLayout dengan content yang sesuai
       Widget dashboardContent;

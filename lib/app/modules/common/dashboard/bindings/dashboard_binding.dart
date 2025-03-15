@@ -10,8 +10,8 @@ class DashboardBinding extends Bindings {
   @override
   void dependencies() {
     // Repositories
-    Get.lazyPut<DashboardRepository>(() => DashboardRepository());
-    Get.lazyPut<BranchRepository>(() => BranchRepository());
+    Get.lazyPut<DashboardRepository>(() => DashboardRepositoryImpl());
+    Get.lazyPut<BranchRepository>(() => BranchRepositoryImpl());
     Get.lazyPut<OrderRepository>(() => OrderRepositoryImpl());
     Get.lazyPut<InventoryRepository>(() => InventoryRepositoryImpl());
 

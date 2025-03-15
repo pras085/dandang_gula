@@ -1,9 +1,187 @@
 import 'package:flutter/material.dart';
-import '../../config/theme/app_colors.dart';
-import '../../config/theme/app_text_styles.dart';
-import '../../data/models/revenue_expense_data.dart';
-import '../layout/app_layout.dart';
-import '../text/app_text.dart';
+import 'package:get/get.dart';
+
+import '../../../../config/theme/app_colors.dart';
+import '../../../../config/theme/app_text_styles.dart';
+import '../../../../core/utils.dart';
+import '../../../../data/models/branch_model.dart';
+import '../../../../data/models/revenue_expense_data.dart';
+import '../../../../global_widgets/text/app_text.dart';
+import '../controllers/dashboard_controller.dart';
+
+class RevenueExpenseChartCard extends StatelessWidget {
+  final DashboardController controller;
+
+  const RevenueExpenseChartCard({
+    super.key,
+    required this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: 345,
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Branch selector (left side)
+          _buildBranchSelector(),
+          const SizedBox(width: 10),
+          // Revenue vs Expense chart (right side)
+          Expanded(
+            child: Obx(() {
+              final selectedBranchId = controller.selectedBranchId.value;
+              final selectedBranch = controller.branchRepository.getBranchById(selectedBranchId);
+
+              // Trigger update when branch selection changes
+              if (selectedBranchId.isNotEmpty) {
+                // This call ensures the chart data is updated when branch changes
+                controller.dashboardRepository.fetchRevenueExpenseData(selectedBranchId);
+              }
+
+              return Expanded(
+                child: Obx(() {
+                  return RevenueVsExpenseChart(
+                    data: controller.dashboardRepository.revenueExpenseData.value,
+                    branchName: selectedBranch?.name ?? 'Semua Cabang',
+                    height: 243,
+                  );
+                }),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBranchSelector() {
+    return SizedBox(
+      width: 274,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // "Cabang" label
+          const Text(
+            'Cabang',
+            style: TextStyle(
+              fontFamily: 'Work Sans',
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              letterSpacing: -0.04,
+              color: Color(0xFFA9AEB3),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Branch selector items
+          Obx(() {
+            final branches = controller.branchRepository.branches;
+            final selectedBranchId = controller.selectedBranchId.value;
+
+            return Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: branches.map((branch) {
+                    final isSelected = branch.id == selectedBranchId;
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      child: _buildBranchSelectItem(
+                        branch: branch,
+                        isSelected: isSelected,
+                        onTap: () => controller.selectBranch(branch.id),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBranchSelectItem({
+    required Branch branch,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(3),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF88DE7B) : const Color(0xFFE5E5E5),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            // Selection indicator (circle)
+            Container(
+              width: 18,
+              height: 18,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected ? const Color(0xFF88DE7B) : Colors.transparent,
+                border: Border.all(
+                  color: isSelected ? Colors.white : const Color(0xFFE1E1E1),
+                  width: 1,
+                ),
+                boxShadow: isSelected
+                    ? [
+                        const BoxShadow(
+                          color: Color(0xFF88DE7B),
+                          spreadRadius: 1,
+                          blurRadius: 0,
+                        )
+                      ]
+                    : null,
+              ),
+            ),
+            const SizedBox(width: 8),
+
+            // Branch icon (placeholder)
+            Image.asset(
+              AppIcons.appIcon,
+              height: 35,
+              width: 35,
+            ),
+
+            const SizedBox(width: 8),
+
+            // Branch name
+            Expanded(
+              child: Text(
+                branch.name,
+                style: const TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  height: 1.25, // line-height: 15px
+                  color: Colors.black,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class RevenueVsExpenseChart extends StatelessWidget {
   final List<RevenueExpenseData> data;
@@ -174,14 +352,14 @@ class RevenueVsExpenseChart extends StatelessWidget {
 
                   // Date label
                   Padding(
-                    padding: const EdgeInsets.only(top: 10),
+                    padding: const EdgeInsets.only(top: 4),
                     child: AppText(
                       'Jan ${item.date.day}',
                       style: const TextStyle(
                         fontFamily: 'Work Sans',
                         fontWeight: FontWeight.bold,
                         fontSize: 10.5,
-                        letterSpacing: -0.04,
+
                         color: Color(0xFFA9AEB3),
                       ),
                     ),
@@ -201,13 +379,16 @@ class RevenueVsExpenseChart extends StatelessWidget {
     required double value,
     required double maxHeight,
   }) {
-    // Ensure minimum visible height
-    final displayHeight = height < 10 && height > 0 ? 10.0 : height;
+    // Ensure bar height stays within bounds
+    final double safeHeight = height.isNaN || height.isInfinite ? 0 : height;
+    final double displayHeight = safeHeight < 10 && safeHeight > 0 ? 10.0 : safeHeight;
+
+    // Limit maximum bar width based on available space
+    final double barWidth = 32;
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        // Value label for bars
         if (height > 30)
           Container(
             padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
@@ -222,18 +403,14 @@ class RevenueVsExpenseChart extends StatelessWidget {
               ),
             ),
           ),
-
-        // The bar itself
         Container(
-          width: 32,
+          width: barWidth,
           height: displayHeight,
           decoration: BoxDecoration(
             color: color,
             borderRadius: BorderRadius.circular(8),
           ),
           alignment: Alignment.center,
-
-          // Only show value inside short bars (we already show it above tall bars)
           child: height <= 30 && height >= 20
               ? AppText(
                   value >= 1000 ? '${(value / 1000).toStringAsFixed(1)}k' : value.toStringAsFixed(0),
