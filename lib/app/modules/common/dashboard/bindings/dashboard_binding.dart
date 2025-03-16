@@ -5,6 +5,7 @@ import '../../../../data/repositories/inventory_repository.dart';
 import '../../../../data/repositories/order_repository.dart';
 import '../../../../data/services/auth_service.dart';
 import '../controllers/dashboard_controller.dart';
+import '../widgets/filter/period_filter_controller.dart';
 
 class DashboardBinding extends Bindings {
   @override
@@ -18,7 +19,10 @@ class DashboardBinding extends Bindings {
     // Services
     Get.lazyPut<AuthService>(() => AuthService());
 
-    // Controller
+    // Filter Controller
+    Get.lazyPut<PeriodFilterController>(() => PeriodFilterController());
+
+    // Dashboard Controller
     Get.lazyPut<DashboardController>(() => DashboardController());
   }
 }

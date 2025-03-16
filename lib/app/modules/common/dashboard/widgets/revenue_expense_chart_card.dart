@@ -41,20 +41,11 @@ class RevenueExpenseChartCard extends StatelessWidget {
               final selectedBranchId = controller.selectedBranchId.value;
               final selectedBranch = branchRepo.branches.isNotEmpty ? branchRepo.getBranchById(selectedBranchId) : null;
 
-              // Trigger update when branch selection changes
-              if (selectedBranchId.isNotEmpty) {
-                // This call ensures the chart data is updated when branch changes
-                controller.dashboardRepository.fetchRevenueExpenseData(selectedBranchId);
-              }
 
-              return Expanded(
-                child: Obx(() {
-                  return RevenueVsExpenseChart(
-                    data: controller.dashboardRepository.revenueExpenseData.value,
-                    branchName: selectedBranch?.name ?? 'Semua Cabang',
-                    height: 243,
-                  );
-                }),
+              return RevenueVsExpenseChart(
+                data: controller.dashboardRepository.revenueExpenseData.value,
+                branchName: selectedBranch?.name ?? 'Semua Cabang',
+                height: 243,
               );
             }),
           ),

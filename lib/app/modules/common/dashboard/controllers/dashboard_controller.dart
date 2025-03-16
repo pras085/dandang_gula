@@ -16,6 +16,7 @@ import '../../../../data/repositories/inventory_repository.dart';
 import '../../../../data/repositories/order_repository.dart';
 import '../../../../data/repositories/user_repository.dart';
 import '../../../../data/services/auth_service.dart';
+import '../widgets/filter/period_filter_controller.dart';
 
 class DashboardController extends GetxController {
   // Repositories
@@ -24,6 +25,7 @@ class DashboardController extends GetxController {
   final OrderRepository orderRepository = Get.find<OrderRepository>();
   final InventoryRepository inventoryRepository = Get.find<InventoryRepository>();
   final AuthService authService = Get.find<AuthService>();
+  final periodFilterController = Get.find<PeriodFilterController>();
 
   // Variabel observable (reactive)
   final isLoading = true.obs;
@@ -63,6 +65,11 @@ class DashboardController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    ever(periodFilterController.selectedPeriod, (_) {
+      update();
+      loadDashboardData();
+    });
+
     initializeData();
   }
 
@@ -82,7 +89,6 @@ class DashboardController extends GetxController {
   }
 
   Future<void> loadUserData() async {
-    isLoading.value = true;
     try {
       userData.value = authService.currentUser;
       userRole.value = userData.value?.role ?? '';
@@ -91,8 +97,6 @@ class DashboardController extends GetxController {
       if (kDebugMode) {
         print('Error loading user data: $e');
       }
-    } finally {
-      isLoading.value = false;
     }
   }
 
@@ -134,16 +138,16 @@ class DashboardController extends GetxController {
     dashboardRepository.fetchRevenueExpenseData(branchId);
   }
 
-  // Change period
-  void changePeriod(String period) {
-    selectedPeriod.value = period;
-    // Refresh data for the new period
-    fetchInitialData();
-  }
-
   Future<void> loadDashboardData() async {
     try {
+      // Dapatkan parameter filter
+      final filterParams = periodFilterController.getFilterParams();
+
       // Get dashboard summary
+
+      // Panggil repository dengan filter
+      await dashboardRepository.fetchDashboardSummary(filterParams: filterParams);
+
       final summary = dashboardRepository.dashboardSummary.value;
       todaySales.value = summary.totalIncome;
 
@@ -151,7 +155,7 @@ class DashboardController extends GetxController {
       switch (userRole.value) {
         case 'admin':
         case 'pusat':
-          await loadAdminData();
+          await loadAdminData(filterParams);
           break;
         case 'branchmanager':
           await loadBranchManagerData();
@@ -170,19 +174,21 @@ class DashboardController extends GetxController {
     }
   }
 
-  Future<void> loadAdminData() async {
+  Future<void> loadAdminData(Map<String, dynamic>? filterParams) async {
     try {
       totalBranches.value = branchRepository.branches.length;
       activeBranches.value = branchRepository.branches.length;
 
-      monthSales.value = await dashboardRepository.getTotalRevenue();
+      monthSales.value = await dashboardRepository.getTotalRevenue(filterParams: filterParams);
       yearSales.value = monthSales.value * 12;
 
       // Get total employees (estimated)
       totalEmployees.value = totalBranches.value * 10;
 
       // Load chart data
-      salesData.value = await dashboardRepository.getRevenueChartData();
+      salesData.value = await dashboardRepository.getRevenueChartData(filterParams: filterParams);
+
+      // TODO : penerapan filter date ?
       categorySales.value = await orderRepository.getCategorySales();
       productSales.value = await orderRepository.getTopProductSales();
       paymentMethods.value = await orderRepository.getPaymentMethodData();
@@ -251,14 +257,17 @@ class DashboardController extends GetxController {
     }
   }
 
-  Future<void> fetchAllBranchesSalesData() async {
+  Future<void> fetchAllBranchesSalesData({Map<String, dynamic>? filterParams}) async {
     try {
       final branches = branchRepository.branches;
       if (branches.isEmpty) return;
 
       for (final branch in branches) {
         // Fetch data untuk setiap cabang
-        await dashboardRepository.fetchSalesPerformanceData(branch.id);
+        await dashboardRepository.fetchSalesPerformanceData(
+          branch.id,
+          filterParams: filterParams,
+        );
 
         // Simpan hasil di map
         branchesSalesData[branch.id] = List<ChartData>.from(dashboardRepository.incomeChartData.value);

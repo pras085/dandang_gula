@@ -11,9 +11,9 @@ abstract class BranchRepository {
   Future<void> addBranch(Branch branch);
   Future<void> updateBranch(Branch branch);
   Future<void> deleteBranch(String id);
-  Future<Map<String, double>> getBranchRevenue(String id);
-  Future<List<ChartData>> getBranchRevenueChartData(String id);
-  Future<List<RevenueExpenseData>> getBranchRevenueExpenseData(String id);
+  Future<Map<String, double>> getBranchRevenue(String id, {Map<String, dynamic>? filterParams});
+  Future<List<ChartData>> getBranchRevenueChartData(String id, {Map<String, dynamic>? filterParams});
+  Future<List<RevenueExpenseData>> getBranchRevenueExpenseData(String id, {Map<String, dynamic>? filterParams});
 }
 
 class BranchRepositoryImpl extends BranchRepository {
@@ -165,7 +165,7 @@ class BranchRepositoryImpl extends BranchRepository {
   }
 
   @override
-  Future<Map<String, double>> getBranchRevenue(String id) async {
+  Future<Map<String, double>> getBranchRevenue(String id, {Map<String, dynamic>? filterParams}) async {
     try {
       final response = await _apiService.get('/branches/$id/revenue');
 
@@ -201,7 +201,7 @@ class BranchRepositoryImpl extends BranchRepository {
   }
 
   @override
-  Future<List<ChartData>> getBranchRevenueChartData(String id) async {
+  Future<List<ChartData>> getBranchRevenueChartData(String id, {Map<String, dynamic>? filterParams}) async {
     try {
       final response = await _apiService.get('/branches/$id/chart');
 
@@ -226,7 +226,7 @@ class BranchRepositoryImpl extends BranchRepository {
   }
 
   @override
-  Future<List<RevenueExpenseData>> getBranchRevenueExpenseData(String id) async {
+  Future<List<RevenueExpenseData>> getBranchRevenueExpenseData(String id, {Map<String, dynamic>? filterParams}) async {
     try {
       final response = await _apiService.get('/branches/$id/revenue-expense');
 

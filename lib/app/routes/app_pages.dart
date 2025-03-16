@@ -74,14 +74,14 @@ class AppPages {
       middlewares: [AuthMiddleware()],
     ),
 
-    // Admin routes
+    // Pusat routes
     GetPage(
       name: Routes.BRANCH_MANAGEMENT,
       page: () => const BranchManagementView(),
       binding: BranchManagementBinding(),
-      middlewares: [
-        AuthMiddleware(allowedRoles: ['admin']),
-      ],
+      // middlewares: [
+      //   AuthMiddleware(allowedRoles: ['pusat']),
+      // ],
     ),
 
     // // User management (common)

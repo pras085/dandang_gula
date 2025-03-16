@@ -5,7 +5,6 @@ import '../../../../config/theme/app_colors.dart';
 import '../../../../config/theme/app_text_styles.dart';
 import '../../../../global_widgets/text/app_text.dart';
 import '../../../../global_widgets/buttons/app_button.dart';
-import '../../../../global_widgets/layout/app_layout.dart';
 import '../controllers/branch_management_controller.dart';
 
 class BranchManagementView extends GetView<BranchManagementController> {
@@ -14,7 +13,7 @@ class BranchManagementView extends GetView<BranchManagementController> {
   @override
   Widget build(BuildContext context) {
     return AppLayout(
-      content: Padding(
+      content: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -24,13 +23,24 @@ class BranchManagementView extends GetView<BranchManagementController> {
               style: AppTextStyles.h3,
             ),
             const SizedBox(height: 16),
-            Expanded(
-              child: Center(
-                child: Obx(() => controller.isLoading.value ? const CircularProgressIndicator() : const AppText('Konten Management Cabang')),
-              ),
-            ),
+            // Expanded(
+            //   child: Center(
+            //     child: Obx(() => controller.isLoading.value ? const CircularProgressIndicator() : const AppText('Konten Management Cabang')),
+            //   ),
+            // ),
           ],
         ),
+      ),
+      // Optional parameters you can use:
+      onRefresh: () async {
+        // Add your refresh logic here
+        return;
+      },
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Add branch logic
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }

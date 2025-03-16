@@ -10,6 +10,7 @@ import '../../../../global_widgets/buttons/icon_button.dart';
 import '../../../../global_widgets/charts/total_income_chart.dart';
 import '../../../../global_widgets/text/app_text.dart';
 import '../controllers/dashboard_controller.dart';
+import '../widgets/filter/period_filter.dart';
 import '../widgets/revenue_expense_chart_card.dart';
 import '../widgets/total_income_card.dart';
 
@@ -30,7 +31,9 @@ class PusatDashboardView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Period selector
-          _buildPeriodSelector(),
+          PeriodFilter(
+            controller: controller.periodFilterController,
+          ),
           const SizedBox(height: AppDimensions.spacing10),
 
           // Total Income Card
@@ -52,58 +55,6 @@ class PusatDashboardView extends StatelessWidget {
           // Sales Performance Charts
           _buildSalesPerformanceCharts(context),
         ],
-      ),
-    );
-  }
-
-  Widget _buildPeriodSelector() {
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 412),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 7),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Flexible(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AppText(
-                'Periode Data',
-                style: AppTextStyles.contentLabel,
-              ),
-              const SizedBox(width: AppDimensions.spacing20),
-              AppText(
-                'Real-time',
-                style: AppTextStyles.contentLabel.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(width: AppDimensions.spacing8),
-              AppText(
-                'Hari ini - Pk 00:00 (GMT+07)',
-                style: AppTextStyles.contentLabel,
-              ),
-              const SizedBox(width: AppDimensions.spacing4),
-              AppIconButton(
-                icon: AppIcons.calendarDot,
-                onPressed: () {
-                  // Handle calendar
-                },
-                backgroundColor: Colors.transparent,
-                iconColor: AppColors.textDisabled,
-                size: 16,
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

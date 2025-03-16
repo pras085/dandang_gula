@@ -24,8 +24,6 @@ class AppLayout extends StatelessWidget {
   final Widget content;
   final Widget? floatingActionButton;
   final Widget? bottomNavigationBar;
-  final bool showBackButton;
-  final bool showDatePicker;
   final Future<void> Function()? onRefresh;
 
   // Get auth service for user role
@@ -36,8 +34,6 @@ class AppLayout extends StatelessWidget {
     required this.content,
     this.floatingActionButton,
     this.bottomNavigationBar,
-    this.showBackButton = false,
-    this.showDatePicker = true,
     this.onRefresh,
   });
 

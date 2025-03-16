@@ -24,13 +24,13 @@ abstract class DashboardRepository {
   RxList<RevenueExpenseData> get revenueExpenseData;
 
   // Methods
-  Future<void> fetchDashboardSummary();
-  Future<void> fetchRevenueExpenseData(String branchId);
-  Future<void> fetchSalesPerformanceData(String branchId);
-  Future<double> getTotalRevenue();
-  Future<double> getTotalProfit();
-  Future<double> getRevenueGrowth();
-  Future<List<ChartData>> getRevenueChartData();
+  Future<DashboardSummary> fetchDashboardSummary({Map<String, dynamic>? filterParams});
+  Future<void> fetchRevenueExpenseData(String branchId, {Map<String, dynamic>? filterParams});
+  Future<void> fetchSalesPerformanceData(String branchId, {Map<String, dynamic>? filterParams});
+  Future<double> getTotalRevenue({Map<String, dynamic>? filterParams});
+  Future<double> getTotalProfit({Map<String, dynamic>? filterParams});
+  Future<double> getRevenueGrowth({Map<String, dynamic>? filterParams});
+  Future<List<ChartData>> getRevenueChartData({Map<String, dynamic>? filterParams});
 }
 
 class DashboardRepositoryImpl implements DashboardRepository {
@@ -58,7 +58,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
 
   // Fetch dashboard summary data
   @override
-  Future<void> fetchDashboardSummary() async {
+  Future<DashboardSummary> fetchDashboardSummary({Map<String, dynamic>? filterParams}) async {
     try {
       if (_apiService != null) {
         // Try to fetch from API
@@ -69,7 +69,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
           netProfit: response['netProfit'] ?? 0.0,
           percentChange: response['percentChange'] ?? 0.0,
         );
-        return;
+        return dashboardSummary.value;
       }
     } catch (e) {
       print('Error fetching dashboard summary: $e');
@@ -83,13 +83,17 @@ class DashboardRepositoryImpl implements DashboardRepository {
     } finally {
       dashboardSummary.refresh();
     }
+    return dashboardSummary.value;
   }
 
   // Fetch revenue vs expense data for a specific branch
   @override
-  Future<void> fetchRevenueExpenseData(String branchId) async {
+  Future<void> fetchRevenueExpenseData(String branchId, {Map<String, dynamic>? filterParams}) async {
     try {
-      final data = await _branchRepository.getBranchRevenueExpenseData(branchId);
+      final data = await _branchRepository.getBranchRevenueExpenseData(
+        branchId,
+        filterParams: filterParams,
+      );
       revenueExpenseData.value = data;
     } catch (e) {
       print('Error fetching revenue expense data: $e');
@@ -115,7 +119,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
 
   // Fetch sales performance data for a specific branch
   @override
-  Future<void> fetchSalesPerformanceData(String branchId) async {
+  Future<void> fetchSalesPerformanceData(String branchId, {Map<String, dynamic>? filterParams}) async {
     try {
       // Return cached data if available
       if (_salesPerformanceCache.containsKey(branchId)) {
@@ -126,7 +130,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
       // Try to fetch from API
       if (_apiService != null) {
         try {
-          final response = await _apiService.get('/dashboard/sales-performance/$branchId');
+          final response = await _apiService.get('/dashboard/sales-performance/$branchId', queryParams: filterParams);
           final data = (response as List).map((item) => ChartData.fromJson(item)).toList();
 
           _salesPerformanceCache[branchId] = data;
@@ -139,7 +143,10 @@ class DashboardRepositoryImpl implements DashboardRepository {
 
       // Fallback to branch repository
       try {
-        final data = await _branchRepository.getBranchRevenueChartData(branchId);
+        final data = await _branchRepository.getBranchRevenueChartData(
+          branchId,
+          filterParams: filterParams,
+        );
         if (data.isNotEmpty) {
           _salesPerformanceCache[branchId] = data;
           incomeChartData.value = data;
@@ -177,10 +184,13 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<double> getTotalRevenue() async {
+  Future<double> getTotalRevenue({Map<String, dynamic>? filterParams}) async {
     try {
       if (_apiService != null) {
-        final response = await _apiService.get('/dashboard/total-revenue');
+        final response = await _apiService.get(
+          '/dashboard/total-revenue',
+          queryParams: filterParams,
+        );
         return response['revenue'] ?? 0.0;
       }
 
@@ -193,10 +203,13 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<double> getTotalProfit() async {
+  Future<double> getTotalProfit({Map<String, dynamic>? filterParams}) async {
     try {
       if (_apiService != null) {
-        final response = await _apiService.get('/dashboard/total-profit');
+        final response = await _apiService.get(
+          '/dashboard/total-profit',
+          queryParams: filterParams,
+        );
         return response['profit'] ?? 0.0;
       }
 
@@ -209,10 +222,13 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<double> getRevenueGrowth() async {
+  Future<double> getRevenueGrowth({Map<String, dynamic>? filterParams}) async {
     try {
       if (_apiService != null) {
-        final response = await _apiService.get('/dashboard/revenue-growth');
+        final response = await _apiService.get(
+          '/dashboard/revenue-growth',
+          queryParams: filterParams,
+        );
         return response['growth'] ?? 0.0;
       }
 
@@ -225,10 +241,13 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<List<ChartData>> getRevenueChartData() async {
+  Future<List<ChartData>> getRevenueChartData({Map<String, dynamic>? filterParams}) async {
     try {
       if (_apiService != null) {
-        final response = await _apiService.get('/dashboard/revenue-chart');
+        final response = await _apiService.get(
+          '/dashboard/revenue-chart',
+          queryParams: filterParams,
+        );
         return (response as List).map((item) => ChartData.fromJson(item)).toList();
       }
 
