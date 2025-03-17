@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 
 import 'app/config/constant/app_constants.dart';
 import 'app/config/theme/app_theme.dart';
+import 'app/core/controllers/navigation_controller.dart';
 import 'app/data/repositories/branch_repository.dart';
 import 'app/data/repositories/dashboard_repository.dart';
 import 'app/data/repositories/inventory_repository.dart';
@@ -24,6 +25,7 @@ void main() async {
 
   final authService = await Get.putAsync(() => AuthService().init());
   Get.lazyPut<ApiService>(() => ApiService(baseUrl: AppConstants.baseUrl, apiKey: ''));
+  Get.put(NavigationController(), permanent: true);
   final initialRoute = authService.isLoggedIn ? Routes.DASHBOARD : Routes.LOGIN;
 
   runApp(
@@ -48,7 +50,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'Dandang Gula Restaurant Management',
       theme: AppTheme.lightTheme,
-      defaultTransition: Transition.fade,
+      defaultTransition: Transition.noTransition,
       initialRoute: _getInitialRoute(),
       getPages: AppPages.pages,
       debugShowCheckedModeBanner: false,

@@ -81,7 +81,7 @@ class _PengaturanAkunTabPagesState extends State<PengaturanAkunTabPages> {
                         label: 'Tambah Akun',
                         width: 153,
                         height: 40,
-                        prefixIcon: Icons.add,
+                        prefixSvgPath: AppIcons.add,
                         variant: ButtonVariant.primary,
                         onPressed: () => controller.openUserForm(),
                       ),

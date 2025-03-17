@@ -4,6 +4,7 @@ import '../../config/theme/app_colors.dart';
 import '../../config/theme/app_dimensions.dart';
 import '../../config/theme/app_text_styles.dart';
 import '../../data/models/payment_method_model.dart';
+import '../layout/app_card.dart';
 import '../layout/app_layout.dart';
 import '../text/app_text.dart';
 
@@ -44,8 +45,7 @@ class PaymentMethodTable extends StatelessWidget {
           return Column(
             children: [
               _buildPaymentMethodRow(method),
-              if (method != paymentMethods.last)
-                const Divider(),
+              if (method != paymentMethods.last) const Divider(),
             ],
           );
         }).toList(),

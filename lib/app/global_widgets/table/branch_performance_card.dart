@@ -5,6 +5,7 @@ import '../../config/theme/app_dimensions.dart';
 import '../../config/theme/app_text_styles.dart';
 import '../../data/models/chart_data_model.dart';
 import '../charts/simple_line_chart.dart';
+import '../layout/app_card.dart';
 import '../layout/app_layout.dart';
 import '../text/app_text.dart';
 
@@ -24,7 +25,7 @@ class BranchPerformanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
+  return AppCard(
       title: title,
       action: TextButton(
         onPressed: onViewDetails,

@@ -1,4 +1,5 @@
 import 'package:dandang_gula/app/global_widgets/charts/sales_performance_chart.dart';
+import 'package:dandang_gula/app/global_widgets/layout/app_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../config/theme/app_colors.dart';
@@ -24,8 +25,7 @@ class PusatDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      physics: const NeverScrollableScrollPhysics(),
+    return Padding(
       padding: AppDimensions.contentPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

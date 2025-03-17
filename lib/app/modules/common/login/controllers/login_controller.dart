@@ -124,7 +124,7 @@ class LoginController extends GetxController {
         usernameController.text = 'pusat';
         passwordController.text = 'password';
         isMasterAdmin.value = true;
-        idLokasiController.text = 'P001';
+        idLokasiController.text = '1';
         break;
 
       case 'kasir':

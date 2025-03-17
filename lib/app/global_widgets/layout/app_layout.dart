@@ -1,5 +1,4 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:dandang_gula/app/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -8,7 +7,12 @@ import '../../config/theme/app_colors.dart';
 import '../../config/theme/app_dimensions.dart';
 import '../../config/theme/app_text_styles.dart';
 import '../../core/utils.dart';
+import '../../core/controllers/navigation_controller.dart';
 import '../../data/services/auth_service.dart';
+import '../../modules/common/dashboard/views/admin_view.dart';
+import '../../modules/common/dashboard/views/pusat_view.dart';
+import '../../modules/pusat/branch_management/views/branch_management_view.dart';
+import '../../routes/app_routes.dart';
 import '../buttons/icon_button.dart';
 import '../text/app_text.dart';
 
@@ -25,9 +29,13 @@ class AppLayout extends StatelessWidget {
   final Widget? floatingActionButton;
   final Widget? bottomNavigationBar;
   final Future<void> Function()? onRefresh;
+  final String title;
+  final bool showBackButton;
+  final VoidCallback? onBackPressed;
+  final bool maintainState;
 
-  // Get auth service for user role
   final AuthService _authService = Get.find<AuthService>();
+  final NavigationController _navigationController = Get.find<NavigationController>();
 
   AppLayout({
     super.key,
@@ -35,9 +43,12 @@ class AppLayout extends StatelessWidget {
     this.floatingActionButton,
     this.bottomNavigationBar,
     this.onRefresh,
+    this.title = '',
+    this.showBackButton = false,
+    this.onBackPressed,
+    this.maintainState = true,
   });
 
-  // Convert string role from AuthService to UserRole enum
   UserRole _getUserRoleEnum() {
     switch (_authService.userRole) {
       case 'admin':
@@ -64,17 +75,18 @@ class AppLayout extends StatelessWidget {
           backgroundColor: AppColors.background,
           body: RefreshIndicator(
             onRefresh: onRefresh ?? () async {},
-            child: CustomScrollView(
+            child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                // App Bar in a SliverToBoxAdapter
-                SliverToBoxAdapter(
-                  child: Container(
+              child: Column(
+                children: [
+                  // App Bar
+                  Container(
                     width: double.infinity,
                     padding: const EdgeInsets.only(
                       left: 24,
                       top: 12,
                       right: 24,
+                      bottom: 12,
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -85,13 +97,21 @@ class AppLayout extends StatelessWidget {
                       ],
                     ),
                   ),
-                ),
 
-                // Content as SliverToBoxAdapter
-                SliverToBoxAdapter(
-                  child: content,
-                ),
-              ],
+                  // Content
+                  Obx(() {
+                    // If we're already showing the requested content, just return it
+                    if (_isCurrentContent()) {
+                      return maintainState ? content : KeyedSubtree(key: UniqueKey(), child: content);
+                    }
+
+                    // Otherwise, use a placeholder while loading the right content
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }),
+                ],
+              ),
             ),
           ),
           floatingActionButton: floatingActionButton,
@@ -112,20 +132,41 @@ class AppLayout extends StatelessWidget {
         ),
         child: Row(
           children: [
+            // Back button if needed
+            if (showBackButton) ...[
+              IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: onBackPressed ?? () => Get.back(),
+              ),
+              const SizedBox(width: 8),
+            ],
+
+            // App logo
             Image.asset(
               AppIcons.appIcon,
               height: 50,
               width: 50,
             ),
-            const SizedBox(width: AppDimensions.spacing16),
-            _buildNavigationItems(),
+
+            // Page title if provided
+            if (title.isNotEmpty) ...[
+              const SizedBox(width: AppDimensions.spacing16),
+              Text(
+                title,
+                style: AppTextStyles.h3.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ] else ...[
+              const SizedBox(width: AppDimensions.spacing16),
+              _buildNavigationItems(),
+            ],
           ],
         ),
       ),
     );
   }
 
-  // Different menu items based on user role
   Widget _buildNavigationItems() {
     return Expanded(
       child: SingleChildScrollView(
@@ -142,7 +183,7 @@ class AppLayout extends StatelessWidget {
   List<Widget> _getNavigationItemsByRole() {
     final navItems = <Widget>[];
     final currentRole = _getUserRoleEnum();
-    final currentRoute = Get.currentRoute;
+    final currentRoute = _navigationController.currentRoute.value;
 
     // Add Dashboard button for all roles
     navItems.add(
@@ -150,9 +191,10 @@ class AppLayout extends StatelessWidget {
         'Dashboard',
         AppIcons.dashboard,
         currentRoute == Routes.DASHBOARD,
-        () => Get.toNamed(Routes.DASHBOARD),
+        Routes.DASHBOARD,
       ),
     );
+
     // Add role-specific menu items
     switch (currentRole) {
       case UserRole.admin:
@@ -161,19 +203,19 @@ class AppLayout extends StatelessWidget {
             'Manajemen Cabang',
             AppIcons.orderDetails,
             currentRoute == Routes.BRANCH_MANAGEMENT,
-            () => Get.toNamed(Routes.BRANCH_MANAGEMENT),
+            Routes.BRANCH_MANAGEMENT,
           ),
           _buildNavItem(
             'Management User',
             AppIcons.userAccess,
             currentRoute == Routes.USER_MANAGEMENT,
-            () => Get.toNamed(Routes.USER_MANAGEMENT),
+            Routes.USER_MANAGEMENT,
           ),
           _buildNavItem(
             'Laporan',
             AppIcons.reportData,
             currentRoute == Routes.REPORTS,
-            () => Get.toNamed(Routes.REPORTS),
+            Routes.REPORTS,
           ),
         ]);
         break;
@@ -184,19 +226,19 @@ class AppLayout extends StatelessWidget {
             'Pesanan',
             AppIcons.orderDetails,
             currentRoute == Routes.ORDERS,
-            () => Get.toNamed(Routes.ORDERS),
+            Routes.ORDERS,
           ),
           _buildNavItem(
             'Laporan',
             AppIcons.reportData,
             currentRoute == Routes.REPORTS,
-            () => Get.toNamed(Routes.REPORTS),
+            Routes.REPORTS,
           ),
           _buildNavItem(
             'Presensi',
             AppIcons.userAccess,
             currentRoute == Routes.ATTENDANCE,
-            () => Get.toNamed(Routes.ATTENDANCE),
+            Routes.ATTENDANCE,
           ),
         ]);
         break;
@@ -207,13 +249,13 @@ class AppLayout extends StatelessWidget {
             'Stok Bahan',
             AppIcons.wheat,
             currentRoute == Routes.STOCK_IN,
-            () => Get.toNamed(Routes.STOCK_IN),
+            Routes.STOCK_IN,
           ),
           _buildNavItem(
             'Laporan',
             AppIcons.reportData,
             currentRoute == Routes.REPORTS,
-            () => Get.toNamed(Routes.REPORTS),
+            Routes.REPORTS,
           ),
         ]);
         break;
@@ -224,19 +266,19 @@ class AppLayout extends StatelessWidget {
             'Manajemen Cabang',
             AppIcons.orderDetails,
             currentRoute == Routes.BRANCH_MANAGEMENT,
-            () => Get.toNamed(Routes.BRANCH_MANAGEMENT),
+            Routes.BRANCH_MANAGEMENT,
           ),
           _buildNavItem(
             'Management User',
             AppIcons.userAccess,
             currentRoute == Routes.USER_MANAGEMENT,
-            () => Get.toNamed(Routes.USER_MANAGEMENT),
+            Routes.USER_MANAGEMENT,
           ),
           _buildNavItem(
             'Laporan',
             AppIcons.reportData,
             currentRoute == Routes.REPORTS,
-            () => Get.toNamed(Routes.REPORTS),
+            Routes.REPORTS,
           ),
         ]);
         break;
@@ -247,31 +289,31 @@ class AppLayout extends StatelessWidget {
             'Management Menu',
             AppIcons.restaurant,
             currentRoute == Routes.MENU_MANAGEMENT,
-            () => Get.toNamed(Routes.MENU_MANAGEMENT),
+            Routes.MENU_MANAGEMENT,
           ),
           _buildNavItem(
             'Stok Bahan',
             AppIcons.wheat,
             currentRoute == Routes.INVENTORY,
-            () => Get.toNamed(Routes.INVENTORY),
+            Routes.INVENTORY,
           ),
           _buildNavItem(
             'Pesanan',
             AppIcons.orderDetails,
             currentRoute == Routes.ORDERS,
-            () => Get.toNamed(Routes.ORDERS),
+            Routes.ORDERS,
           ),
           _buildNavItem(
             'Laporan',
             AppIcons.reportData,
             currentRoute == Routes.REPORTS,
-            () => Get.toNamed(Routes.REPORTS),
+            Routes.REPORTS,
           ),
           _buildNavItem(
             'Management User',
             AppIcons.userAccess,
             currentRoute == Routes.USER_MANAGEMENT,
-            () => Get.toNamed(Routes.USER_MANAGEMENT),
+            Routes.USER_MANAGEMENT,
           ),
         ]);
         break;
@@ -280,11 +322,13 @@ class AppLayout extends StatelessWidget {
     return navItems;
   }
 
-  Widget _buildNavItem(String label, String iconPath, bool isActive, VoidCallback onTap) {
+  Widget _buildNavItem(String label, String iconPath, bool isActive, String routeName) {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          _navigationController.changePage(routeName);
+        },
         borderRadius: BorderRadius.circular(8),
         child: Stack(
           children: [
@@ -324,7 +368,7 @@ class AppLayout extends StatelessWidget {
                 ],
               ),
             ),
-            // Container dalam - hanya muncul saat aktif, untuk membuat efek inset
+            // Rest of the UI elements...
             if (isActive)
               Positioned(
                 top: 2,
@@ -343,7 +387,6 @@ class AppLayout extends StatelessWidget {
                 ),
               ),
 
-            // Content di atas container - pastikan tetap terlihat di atas efek inset
             if (isActive)
               Positioned.fill(
                 child: Padding(
@@ -380,8 +423,9 @@ class AppLayout extends StatelessWidget {
     );
   }
 
+  // User profile and other methods remain the same...
   Widget _buildUserProfile() {
-    // User avatar and profile
+    // Your existing implementation...
     return Obx(() {
       final user = _authService.currentUser;
       final userName = user?.name ?? 'User';
@@ -402,7 +446,7 @@ class AppLayout extends StatelessWidget {
               AppIconButton(
                 icon: AppIcons.settings,
                 onPressed: () {
-                  Get.toNamed(Routes.SETTING);
+                  Get.toNamed('/settings');
                 },
                 backgroundColor: Colors.transparent,
               ),
@@ -426,6 +470,7 @@ class AppLayout extends StatelessWidget {
   }
 
   String _getRoleDisplayName(String role) {
+    // Your existing implementation...
     switch (role) {
       case 'admin':
         return 'Admin';
@@ -442,42 +487,8 @@ class AppLayout extends StatelessWidget {
     }
   }
 
-  Widget _buildDatePicker() {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimensions.spacing12,
-        vertical: AppDimensions.spacing8,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        children: [
-          AppText(
-            'Real-time',
-            style: AppTextStyles.bodySmall,
-          ),
-          const SizedBox(width: AppDimensions.spacing8),
-          AppText(
-            'Hari ini - Pk 00:00 (GMT+07)',
-            style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(width: AppDimensions.spacing8),
-          const Icon(
-            Icons.calendar_today_outlined,
-            size: 16,
-            color: AppColors.textTertiary,
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildUserAvatar(String userName, String roleName) {
+    // Your existing implementation...
     return PopupMenuButton<String>(
       offset: const Offset(0, 40),
       padding: EdgeInsets.zero,
@@ -555,7 +566,6 @@ class AppLayout extends StatelessWidget {
     );
   }
 
-// Helper method untuk avatar default
   Widget _buildDefaultAvatar() {
     return Container(
       color: AppColors.primary,
@@ -571,114 +581,23 @@ class AppLayout extends StatelessWidget {
       ),
     );
   }
-}
 
-// Card widget for consistent card styling across app
-class AppCard extends StatelessWidget {
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  final String? title;
-  final Widget? action;
+  bool _isCurrentContent() {
+    // Get the current route from the navigation controller
+    String currentRoute = _navigationController.currentRoute.value;
 
-  const AppCard({
-    super.key,
-    required this.child,
-    this.padding = const EdgeInsets.all(AppDimensions.cardPadding),
-    this.title,
-    this.action,
-  });
+    // Check if the content we're currently displaying matches what's expected for this route
+    if (content is AdminDashboardView && currentRoute == Routes.DASHBOARD && _authService.userRole != 'pusat') {
+      return true;
+    } else if (content is PusatDashboardView && currentRoute == Routes.DASHBOARD && _authService.userRole == 'pusat') {
+      return true;
+    } else if (content is BranchManagementView && currentRoute == Routes.BRANCH_MANAGEMENT) {
+      return true;
+      // } else if (content is UserManagementView && currentRoute == Routes.USER_MANAGEMENT) {
+      //   return true;
+    }
+    // Add other content type checks
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppDimensions.cardBorderRadius),
-        border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: padding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (title != null || action != null) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (title != null)
-                    AppText(
-                      title!,
-                      style: AppTextStyles.h3,
-                    ),
-                  if (action != null) action!,
-                ],
-              ),
-              const SizedBox(height: AppDimensions.spacing16),
-            ],
-            child,
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// Dashboard layout with specific structure for dashboards
-class DashboardLayout extends StatelessWidget {
-  final List<Widget> topCards;
-  final List<Widget> middleContent;
-  final List<Widget> bottomCards;
-
-  const DashboardLayout({
-    super.key,
-    required this.topCards,
-    required this.middleContent,
-    required this.bottomCards,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      children: [
-        Row(
-          children: List.generate(
-            topCards.length,
-            (index) => Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(
-                  right: index < topCards.length - 1 ? AppDimensions.spacing16 : 0,
-                ),
-                child: topCards[index],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: AppDimensions.spacing16),
-        ...middleContent,
-        const SizedBox(height: AppDimensions.spacing16),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: List.generate(
-            bottomCards.length,
-            (index) => Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(
-                  right: index < bottomCards.length - 1 ? AppDimensions.spacing16 : 0,
-                ),
-                child: bottomCards[index],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
+    return false; // If none of the conditions match, we need to update the content
   }
 }

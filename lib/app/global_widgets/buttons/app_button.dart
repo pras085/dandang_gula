@@ -1,5 +1,6 @@
 import 'package:dandang_gula/app/config/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../config/theme/app_colors.dart';
 
 enum ButtonVariant { primary, secondary, outline, text }
@@ -9,8 +10,8 @@ class AppButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final double height;
   final ButtonVariant variant;
-  final IconData? prefixIcon;
-  final IconData? suffixIcon;
+  final String? prefixSvgPath;
+  final String? suffixSvgPath;
   final bool isLoading;
   final bool fullWidth;
   final double? width;
@@ -22,8 +23,8 @@ class AppButton extends StatelessWidget {
     this.onPressed,
     this.height = 54,
     this.variant = ButtonVariant.primary,
-    this.prefixIcon,
-    this.suffixIcon,
+    this.prefixSvgPath,
+    this.suffixSvgPath,
     this.isLoading = false,
     this.fullWidth = true,
     this.width,
@@ -113,7 +114,7 @@ class AppButton extends StatelessWidget {
       );
     }
 
-    if (prefixIcon == null && suffixIcon == null) {
+    if (prefixSvgPath == null && suffixSvgPath == null) {
       return Text(
         label,
         style: _getTextStyle(),
@@ -124,15 +125,19 @@ class AppButton extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (prefixIcon != null) ...[
+        if (prefixSvgPath != null) ...[
           SizedBox(
             width: 24,
             height: 24,
             child: Center(
-              child: Icon(
-                prefixIcon,
-                size: 16,
-                color: _getIconColor(),
+              child: SvgPicture.asset(
+                prefixSvgPath!,
+                width: 16,
+                height: 16,
+                colorFilter: ColorFilter.mode(
+                  _getIconColor(),
+                  BlendMode.srcIn,
+                ),
               ),
             ),
           ),
@@ -142,16 +147,20 @@ class AppButton extends StatelessWidget {
           label,
           style: _getTextStyle(),
         ),
-        if (suffixIcon != null) ...[
+        if (suffixSvgPath != null) ...[
           const SizedBox(width: 6),
           SizedBox(
             width: 24,
             height: 24,
             child: Center(
-              child: Icon(
-                suffixIcon,
-                size: 16,
-                color: _getIconColor(),
+              child: SvgPicture.asset(
+                suffixSvgPath!,
+                width: 16,
+                height: 16,
+                colorFilter: ColorFilter.mode(
+                  _getIconColor(),
+                  BlendMode.srcIn,
+                ),
               ),
             ),
           ),
@@ -162,11 +171,11 @@ class AppButton extends StatelessWidget {
 
   EdgeInsetsGeometry _getPadding() {
     if (variant == ButtonVariant.primary || variant == ButtonVariant.secondary) {
-      if (prefixIcon != null && suffixIcon == null) {
+      if (prefixSvgPath != null && suffixSvgPath == null) {
         return const EdgeInsets.fromLTRB(14, 8, 22, 8);
-      } else if (prefixIcon == null && suffixIcon != null) {
+      } else if (prefixSvgPath == null && suffixSvgPath != null) {
         return const EdgeInsets.fromLTRB(22, 8, 14, 8);
-      } else if (prefixIcon != null && suffixIcon != null) {
+      } else if (prefixSvgPath != null && suffixSvgPath != null) {
         return const EdgeInsets.fromLTRB(14, 8, 14, 8);
       } else {
         return const EdgeInsets.fromLTRB(22, 8, 22, 8);

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../core/utils.dart';
 import '../../../../global_widgets/card/summary_card.dart';
+import '../../../../global_widgets/layout/app_card.dart';
 import '../../../../global_widgets/table/stock_alert_table.dart';
 import '../controllers/dashboard_controller.dart';
 import '../../../../global_widgets/charts/stock_flow_chart.dart';
@@ -168,7 +170,7 @@ class GudangDashboardView extends StatelessWidget {
             alignment: Alignment.centerRight,
             child: AppButton(
               label: 'Catat stok masuk',
-              prefixIcon: Icons.add,
+              prefixSvgPath: AppIcons.add,
               variant: ButtonVariant.primary,
               onPressed: () {
                 Get.toNamed(Routes.STOCK_IN);

@@ -32,7 +32,7 @@ class DashboardView extends GetView<DashboardController> {
       Widget dashboardContent;
       switch (controller.userRole.value) {
         case 'admin':
-          dashboardContent = AdminDashboardView(controller: controller);
+          dashboardContent = const AdminDashboardView();
           break;
         case 'pusat':
           dashboardContent = PusatDashboardView(controller: controller);
@@ -49,9 +49,13 @@ class DashboardView extends GetView<DashboardController> {
           );
       }
 
+      // Wrap with AppLayout
       return AppLayout(
+        maintainState: true,
         content: dashboardContent,
-        onRefresh: () => controller.initializeData(),
+        onRefresh: () async {
+          await controller.initializeData();
+        },
       );
     });
   }

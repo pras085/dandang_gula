@@ -1,3 +1,5 @@
+import 'package:dandang_gula/app/data/services/auth_service.dart';
+import 'package:dandang_gula/app/global_widgets/buttons/app_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -5,10 +7,12 @@ import 'period_filter_controller.dart';
 
 class PeriodFilter extends StatefulWidget {
   final PeriodFilterController controller;
+  final List<Widget>? actionButton;
 
   const PeriodFilter({
     super.key,
     required this.controller,
+    this.actionButton,
   });
 
   @override
@@ -24,6 +28,11 @@ class _PeriodFilterState extends State<PeriodFilter> {
   final LayerLink _layerLink = LayerLink();
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   void dispose() {
     _removeDropdownOverlay();
     _removeCalendarOverlay();
@@ -35,77 +44,86 @@ class _PeriodFilterState extends State<PeriodFilter> {
     return Obx(() {
       return CompositedTransformTarget(
         link: _layerLink,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Main filter button
-            InkWell(
-              onTap: () {
-                if (widget.controller.isDropdownOpen.value) {
-                  _removeDropdownOverlay();
-                } else {
-                  _showDropdownOverlay();
-                }
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFFD5DBE0)),
-                  borderRadius: BorderRadius.circular(4),
-                  color: Colors.white,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'Periode Data',
-                      style: TextStyle(
-                        fontFamily: 'Work Sans',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF474A4E),
+        child: Container(
+          width: double.infinity,
+          height: 68,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              // Main filter button
+              InkWell(
+                onTap: () {
+                  if (widget.controller.isDropdownOpen.value) {
+                    _removeDropdownOverlay();
+                  } else {
+                    _showDropdownOverlay();
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  height: 40,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: const Color(0xFFD5DBE0)),
+                    borderRadius: BorderRadius.circular(4),
+                    color: Colors.transparent,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'Periode Data',
+                        style: TextStyle(
+                          fontFamily: 'Work Sans',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF474A4E),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 20),
-                    Text(
-                      _getPeriodName(widget.controller.selectedPeriod.value),
-                      style: const TextStyle(
-                        fontFamily: 'Work Sans',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF474A4E),
+                      const SizedBox(width: 20),
+                      Text(
+                        _getPeriodName(widget.controller.selectedPeriod.value),
+                        style: const TextStyle(
+                          fontFamily: 'Work Sans',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF474A4E),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      widget.controller.formattedDateRange.value,
-                      style: const TextStyle(
-                        fontFamily: 'Work Sans',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF474A4E),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          widget.controller.formattedDateRange.value,
+                          style: const TextStyle(
+                            fontFamily: 'Work Sans',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF474A4E),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 6),
-                    InkWell(
-                      onTap: () {
-                        if (widget.controller.isCalendarVisible.value) {
-                          _removeCalendarOverlay();
-                        } else {
-                          _showCalendarOverlay('custom-date');
-                        }
-                      },
-                      child: const Icon(
-                        Icons.calendar_today_outlined,
-                        size: 16,
-                        color: Color(0xFFD5DBE0),
+                      const SizedBox(width: 6),
+                      InkWell(
+                        onTap: () {
+                          _showDropdownOverlay();
+                        },
+                        child: const Icon(
+                          Icons.calendar_today_outlined,
+                          size: 16,
+                          color: Color(0xFFD5DBE0),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+              if (widget.actionButton != null && (widget.actionButton ?? []).isNotEmpty) ...widget.actionButton!
+            ],
+          ),
         ),
       );
     });
@@ -167,32 +185,32 @@ class _PeriodFilterState extends State<PeriodFilter> {
     widget.controller.tempEndDate.value = widget.controller.endDate.value;
 
     _calendarOverlay = OverlayEntry(
-      builder: (context) => GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: _removeCalendarOverlay,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: Container(
-                color: Colors.transparent,
-              ),
-            ),
-            CompositedTransformFollower(
-              link: _layerLink,
-              showWhenUnlinked: false,
-              offset: const Offset(0, 38),
-              child: Material(
-                elevation: 8,
-                borderRadius: BorderRadius.circular(4),
-                child: GestureDetector(
-                  onTap: () {}, // Prevent tap through
-                  child: _buildInlineCalendar(),
+      builder: (context) => Obx(() => GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: _removeCalendarOverlay,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.transparent,
+                  ),
                 ),
-              ),
+                CompositedTransformFollower(
+                  link: _layerLink,
+                  showWhenUnlinked: false,
+                  offset: const Offset(0, 38),
+                  child: Material(
+                    elevation: 8,
+                    borderRadius: BorderRadius.circular(4),
+                    child: GestureDetector(
+                      onTap: () {}, // Prevent tap through
+                      child: _buildInlineCalendar(),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          )),
     );
 
     Overlay.of(context).insert(_calendarOverlay!);
@@ -228,79 +246,81 @@ class _PeriodFilterState extends State<PeriodFilter> {
       {'id': 'per-bulan', 'name': 'Per Bulan', 'display': 'Data bulanan', 'needsDatePicker': true},
     ];
 
-    return Container(
-      width: 409, // Fixed width from design
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: periods.map((period) {
-          final bool isSelected = widget.controller.selectedPeriod.value == period['id'];
-          final bool needsDatePicker = period['needsDatePicker'] == true;
+    return Obx(() {
+      return Container(
+        width: 409, // Fixed width from design
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: periods.map((period) {
+            final bool isSelected = widget.controller.selectedPeriod.value == period['id'];
+            final bool needsDatePicker = period['needsDatePicker'] == true;
 
-          return InkWell(
-            onTap: () {
-              if (needsDatePicker) {
-                // Just show the calendar for date selection
-                // We'll only apply the period if user clicks "Apply" in calendar
-                _removeDropdownOverlay();
-                _showCalendarOverlay(period['id']);
-              } else {
-                // For direct periods, apply immediately
-                widget.controller.changePeriod(period['id']);
-                _removeDropdownOverlay();
-              }
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFFEAEEF2) : Colors.white,
-              ),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 150,
-                    child: Text(
-                      period['name'],
-                      style: TextStyle(
-                        fontFamily: 'Work Sans',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: -0.56,
-                        color: isSelected ? const Color(0xFF21776A) : Colors.black,
-                      ),
-                    ),
-                  ),
-                  if (isSelected)
-                    Expanded(
+            return InkWell(
+              onTap: () {
+                if (needsDatePicker) {
+                  // Just show the calendar for date selection
+                  // We'll only apply the period if user clicks "Apply" in calendar
+                  _removeDropdownOverlay();
+                  _showCalendarOverlay(period['id']);
+                } else {
+                  // For direct periods, apply immediately
+                  widget.controller.changePeriod(period['id']);
+                  _removeDropdownOverlay();
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isSelected ? const Color(0xFFEAEEF2) : Colors.white,
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 150,
                       child: Text(
-                        // For selected periods, show full date range
-                        getDateRangeDisplay(period['id']),
-                        style: const TextStyle(
+                        period['name'],
+                        style: TextStyle(
                           fontFamily: 'Work Sans',
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                           letterSpacing: -0.56,
-                          color: Color(0xFF21776A),
+                          color: isSelected ? const Color(0xFF21776A) : Colors.black,
                         ),
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  if (needsDatePicker)
-                    Icon(
-                      Icons.calendar_today,
-                      size: 16,
-                      color: isSelected ? const Color(0xFF21776A) : Colors.grey,
-                    ),
-                ],
+                    if (isSelected)
+                      Expanded(
+                        child: Text(
+                          // For selected periods, show full date range
+                          getDateRangeDisplay(period['id']),
+                          style: const TextStyle(
+                            fontFamily: 'Work Sans',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: -0.56,
+                            color: Color(0xFF21776A),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    if (needsDatePicker)
+                      Icon(
+                        Icons.calendar_today,
+                        size: 16,
+                        color: isSelected ? const Color(0xFF21776A) : Colors.grey,
+                      ),
+                  ],
+                ),
               ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
+            );
+          }).toList(),
+        ),
+      );
+    });
   }
 
   // Get date range display for selected period
@@ -435,15 +455,12 @@ class _PeriodFilterState extends State<PeriodFilter> {
                   icon: const Icon(Icons.chevron_left, size: 20),
                   onPressed: () => _navigateCalendar(-1),
                 ),
-                GestureDetector(
-                  onTap: () => _showYearPicker(),
-                  child: Text(
-                    monthYearText,
-                    style: const TextStyle(
-                      fontFamily: 'Work Sans',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                Text(
+                  monthYearText,
+                  style: const TextStyle(
+                    fontFamily: 'Work Sans',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 IconButton(
@@ -461,7 +478,7 @@ class _PeriodFilterState extends State<PeriodFilter> {
                   child: Center(
                     child: Text(
                       day,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Work Sans',
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -572,6 +589,7 @@ class _PeriodFilterState extends State<PeriodFilter> {
   // Build calendar grid
   List<Widget> _buildCalendarGrid() {
     final DateTime viewDate = widget.controller.calendarViewDate.value;
+    final DateTime selectedDate = widget.controller.selectedCalendarDate.value;
 
     // Calculate first day of the month
     final DateTime firstDayOfMonth = DateTime(viewDate.year, viewDate.month, 1);
@@ -599,7 +617,7 @@ class _PeriodFilterState extends State<PeriodFilter> {
         if (day > 0 && day <= daysInMonth) {
           // Current month day
           final DateTime cellDate = DateTime(viewDate.year, viewDate.month, day);
-          final bool isSelected = _isSameDay(cellDate, widget.controller.selectedCalendarDate.value);
+          final bool isSelected = _isSameDay(cellDate, selectedDate);
           final bool isToday = _isSameDay(cellDate, DateTime.now());
 
           // For per-minggu mode, highlight Monday cells
@@ -612,13 +630,14 @@ class _PeriodFilterState extends State<PeriodFilter> {
             Expanded(
               child: InkWell(
                   onTap: () {
-                    setState(() {
-                      // Update selected date
-                      widget.controller.selectedCalendarDate.value = cellDate;
+                    // Update selected date
+                    widget.controller.selectedCalendarDate.value = cellDate;
 
-                      // Update preview dates based on mode
-                      _updatePreviewDates(cellDate);
-                    });
+                    // Update preview dates based on mode
+                    _updatePreviewDates(cellDate);
+
+                    // Force refresh UI
+                    widget.controller.update();
                   },
                   child: Container(
                     height: 36,
@@ -670,6 +689,12 @@ class _PeriodFilterState extends State<PeriodFilter> {
                           )
                         : Text(
                             day.toString(),
+                            style: const TextStyle(
+                              fontFamily: 'Work Sans',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF474A4E),
+                            ),
                           ),
                   )),
             ),
@@ -698,7 +723,6 @@ class _PeriodFilterState extends State<PeriodFilter> {
 
   // Update preview dates based on selected date and mode
   void _updatePreviewDates(DateTime selectedDate) {
-    setState(() {});
     switch (widget.controller.calendarMode.value) {
       case 'per-hari':
         widget.controller.tempStartDate.value = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
@@ -729,6 +753,9 @@ class _PeriodFilterState extends State<PeriodFilter> {
         widget.controller.tempEndDate.value = DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 23, 59, 59);
         break;
     }
+
+    // Force refresh after updating dates
+    widget.controller.update();
   }
 
   // Check if two dates are the same day
@@ -752,40 +779,9 @@ class _PeriodFilterState extends State<PeriodFilter> {
         current.month > 1 ? current.month - 1 : 12,
       );
     }
-    setState(() {});
-  }
 
-  // Show year picker dialog
-  void _showYearPicker() {
-    final currentYear = widget.controller.calendarViewDate.value.year;
-    final items = List<int>.generate(10, (i) => currentYear - 5 + i);
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Select Year'),
-          content: SizedBox(
-            width: 300,
-            height: 300,
-            child: ListView.builder(
-              itemCount: items.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(items[index].toString()),
-                  onTap: () {
-                    final current = widget.controller.calendarViewDate.value;
-                    widget.controller.calendarViewDate.value = DateTime(items[index], current.month);
-                    Navigator.pop(context);
-                    setState(() {});
-                  },
-                );
-              },
-            ),
-          ),
-        );
-      },
-    );
+    // Force refresh of the controller
+    widget.controller.update();
   }
 
   // Get period name for display
@@ -805,8 +801,6 @@ class _PeriodFilterState extends State<PeriodFilter> {
         return 'Per Minggu';
       case 'per-bulan':
         return 'Per Bulan';
-      case 'custom-date':
-        return 'Tanggal Spesifik';
       default:
         return 'Real-time';
     }

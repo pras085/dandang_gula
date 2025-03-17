@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../config/theme/app_dimensions.dart';
+import '../../../../global_widgets/layout/app_card.dart';
 import '../controllers/dashboard_controller.dart';
 import '../../../../global_widgets/charts/revenue_chart.dart';
 import '../../../../global_widgets/card/action_card.dart';
@@ -41,8 +42,8 @@ class BranchManagerDashboardView extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Row dengan detail COGS dan Laba Kotor
-          AppCard(
-            child: const Row(
+          const AppCard(
+            child: Row(
               children: [
                 Expanded(
                   child: Column(
