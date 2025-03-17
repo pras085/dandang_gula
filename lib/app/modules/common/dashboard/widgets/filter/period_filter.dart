@@ -8,11 +8,13 @@ import 'period_filter_controller.dart';
 class PeriodFilter extends StatefulWidget {
   final PeriodFilterController controller;
   final List<Widget>? actionButton;
+  final Function(String) onPeriodChanged;
 
   const PeriodFilter({
     super.key,
     required this.controller,
     this.actionButton,
+    required this.onPeriodChanged,
   });
 
   @override
@@ -269,6 +271,7 @@ class _PeriodFilterState extends State<PeriodFilter> {
                 } else {
                   // For direct periods, apply immediately
                   widget.controller.changePeriod(period['id']);
+                  widget.onPeriodChanged(period['id']);
                   _removeDropdownOverlay();
                 }
               },

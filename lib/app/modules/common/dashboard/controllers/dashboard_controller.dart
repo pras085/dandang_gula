@@ -65,12 +65,16 @@ class DashboardController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    ever(periodFilterController.selectedPeriod, (_) {
-      update();
-      loadDashboardData();
-    });
 
+    // Inisialisasi tanpa listener otomatis
     initializeData();
+  }
+
+  // Buat metode yang dipanggil secara eksplisit dari UI
+  void onPeriodFilterChanged(String newPeriod) {
+    periodFilterController.selectedPeriod.value = newPeriod;
+    update();
+    loadDashboardData();
   }
 
   Future<void> initializeData() async {
@@ -83,9 +87,8 @@ class DashboardController extends GetxController {
       if (kDebugMode) {
         print('Error initializing data: $e');
       }
-    } finally {
-      isLoading.value = false;
     }
+    isLoading.value = false;
   }
 
   Future<void> loadUserData() async {
@@ -171,6 +174,8 @@ class DashboardController extends GetxController {
       if (kDebugMode) {
         print('Error loading dashboard data: $e');
       }
+    } finally {
+      isLoading.value = false;
     }
   }
 

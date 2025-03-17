@@ -99,17 +99,7 @@ class AppLayout extends StatelessWidget {
                   ),
 
                   // Content
-                  Obx(() {
-                    // If we're already showing the requested content, just return it
-                    if (_isCurrentContent()) {
-                      return maintainState ? content : KeyedSubtree(key: UniqueKey(), child: content);
-                    }
-
-                    // Otherwise, use a placeholder while loading the right content
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }),
+                  maintainState ? content : KeyedSubtree(key: UniqueKey(), child: content),
                 ],
               ),
             ),
@@ -580,24 +570,5 @@ class AppLayout extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  bool _isCurrentContent() {
-    // Get the current route from the navigation controller
-    String currentRoute = _navigationController.currentRoute.value;
-
-    // Check if the content we're currently displaying matches what's expected for this route
-    if (content is AdminDashboardView && currentRoute == Routes.DASHBOARD && _authService.userRole != 'pusat') {
-      return true;
-    } else if (content is PusatDashboardView && currentRoute == Routes.DASHBOARD && _authService.userRole == 'pusat') {
-      return true;
-    } else if (content is BranchManagementView && currentRoute == Routes.BRANCH_MANAGEMENT) {
-      return true;
-      // } else if (content is UserManagementView && currentRoute == Routes.USER_MANAGEMENT) {
-      //   return true;
-    }
-    // Add other content type checks
-
-    return false; // If none of the conditions match, we need to update the content
   }
 }

@@ -48,6 +48,9 @@ class AdminDashboardView extends GetView<DashboardController> {
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: PeriodFilter(
             controller: controller.periodFilterController,
+            onPeriodChanged: (periodId) {
+              controller.onPeriodFilterChanged(periodId);
+            },
           ),
         ),
         const SizedBox(height: 16),

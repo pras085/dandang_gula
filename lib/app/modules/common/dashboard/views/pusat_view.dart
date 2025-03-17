@@ -33,6 +33,9 @@ class PusatDashboardView extends StatelessWidget {
           // Period selector
           PeriodFilter(
             controller: controller.periodFilterController,
+            onPeriodChanged: (periodId) {
+              controller.onPeriodFilterChanged(periodId);
+            },
           ),
           const SizedBox(height: AppDimensions.spacing10),
 
