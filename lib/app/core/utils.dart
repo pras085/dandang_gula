@@ -156,6 +156,9 @@ class AppIcons {
   static const String bottlesContainer = '${AssetUtils._iconsPath}/bottles-container.svg';
   static const String wheat = '${AssetUtils._iconsPath}/wheat.svg';
   static const String noodleBowl = '${AssetUtils._iconsPath}/noodle-bowl.svg';
+  static const String dollar = '${AssetUtils._iconsPath}/dollar.svg';
+  static const String edc = '${AssetUtils._iconsPath}/edc.svg';
+  static const String qris = '${AssetUtils._iconsPath}/qris.svg';
 
   // UI related
   static const String viewFilled = '${AssetUtils._iconsPath}/view-filled.svg';

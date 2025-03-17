@@ -272,13 +272,14 @@ class ApiService extends GetxService {
           });
         }
         return data;
-      } else if (endpoint == '/dashboard/revenue-chart') {
+      } else if (endpoint.contains('/revenue-chart')) {
         // Return as list for chart data
         final data = [];
         for (int i = 1; i <= 8; i++) {
           data.add({
             'label': 'Jan $i',
             'value': 10000000.0 + (i * 500000.0 * (i % 3 == 0 ? -1 : 1)), // Use doubles
+            'date': DateTime(2023, 1, i + 10).toIso8601String(),
           });
         }
         return data;

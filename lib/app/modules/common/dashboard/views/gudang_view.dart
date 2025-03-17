@@ -30,12 +30,12 @@ class GudangDashboardView extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Row dengan card informasi total bahan
-          const SummaryCard(
-            title: 'Total Bahan',
-            value: '120',
-            secondaryValue: 'Items',
-            icon: Icons.category,
-          ),
+          // const SummaryCard(
+          //   title: 'Total Bahan',
+          //   value: '120',
+          //   secondaryValue: 'Items',
+          //   icon: Icons.category,
+          // ),
           const SizedBox(height: 16),
 
           // Informasi Stok Masuk

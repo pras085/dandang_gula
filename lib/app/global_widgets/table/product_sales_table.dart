@@ -1,124 +1,239 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../config/theme/app_colors.dart';
-import '../../config/theme/app_text_styles.dart';
+import '../../core/utils.dart';
 import '../../data/models/product_sales_model.dart';
-import '../layout/app_card.dart';
-import '../layout/app_layout.dart';
-import '../text/app_text.dart';
 
 class ProductSalesTable extends StatelessWidget {
   final String title;
   final List<ProductSales> products;
   final VoidCallback onViewAll;
+  final double height;
 
   const ProductSalesTable({
     super.key,
     required this.title,
     required this.products,
     required this.onViewAll,
+    this.height = 410,
   });
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      title: title,
-      action: TextButton(
-        onPressed: onViewAll,
-        child: const Row(
-          children: [
-            AppText(
-              'Lainya',
-              style: TextStyle(color: AppColors.primary),
-            ),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 12,
-              color: AppColors.primary,
-            ),
-          ],
-        ),
+    return Container(
+      width: 450,
+      height: height,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Title and Action row
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                flex: 2,
-                child: AppText(
-                  'Produk',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontFamily: 'IBM Plex Sans',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  height: 18 / 14,
+                  color: Colors.black,
                 ),
               ),
-              Expanded(
-                child: AppText(
-                  'Total Pesanan',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              Expanded(
-                child: AppText(
-                  'Total Penjualan',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.right,
+              InkWell(
+                onTap: onViewAll,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Lainya',
+                      style: TextStyle(
+                        fontFamily: 'IBM Plex Sans',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        height: 16 / 12,
+                        color: Color(0xFF017AEB),
+                      ),
+                    ),
+                    const SizedBox(width: 2),
+                    SvgPicture.asset(
+                      AppIcons.caretRight,
+                      width: 16,
+                      height: 16,
+                      colorFilter: const ColorFilter.mode(
+                        Color(0xFF017AEB),
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const Divider(),
-          ...products.map((product) => _buildProductRow(product)).toList(),
+          const SizedBox(height: 10),
+
+          // Table header
+          Container(
+            height: 40,
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            decoration: const BoxDecoration(
+              color: Color(0xFFFAFAFA),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 14),
+                    child: Text(
+                      'Produk',
+                      style: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        height: 17 / 14,
+                        letterSpacing: -0.06,
+                        color: Color(0xFF888888),
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      'Total Pesanan',
+                      style: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        height: 17 / 14,
+                        letterSpacing: -0.06,
+                        color: Color(0xFF888888),
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 10),
+                    child: Text(
+                      'Total Penjualan',
+                      style: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        height: 17 / 14,
+                        letterSpacing: -0.06,
+                        color: Color(0xFF888888),
+                      ),
+                      textAlign: TextAlign.right,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Table rows
+          Expanded(
+            child: ListView.builder(
+              itemCount: products.length,
+              padding: EdgeInsets.zero,
+              itemBuilder: (context, index) {
+                return _buildProductRow(products[index]);
+              },
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildProductRow(ProductSales product) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+    return Container(
+      height: 52,
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: Color(0xFFE5E5EA),
+            width: 1,
+          ),
+        ),
+      ),
       child: Row(
         children: [
           Expanded(
-            flex: 2,
+            flex: 1,
             child: Row(
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 30,
+                  height: 30,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(8),
+                    color: const Color(0xFFBDBDBD),
+                    borderRadius: BorderRadius.circular(4),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: AppText(
-                    product.name,
-                    style: AppTextStyles.bodyMedium,
-                    overflow: TextOverflow.ellipsis,
+                const SizedBox(width: 10),
+                Text(
+                  product.name,
+                  style: const TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    height: 15 / 12,
+                    letterSpacing: -0.06,
+                    color: Colors.black,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
           Expanded(
-            child: AppText(
-              product.orderCount.toString(),
-              style: AppTextStyles.bodyMedium,
-              textAlign: TextAlign.center,
+            child: Center(
+              child: Text(
+                CurrencyFormatter.formatThousands(product.orderCount.toDouble(), decimalDigits: 0),
+                style: const TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  height: 15 / 12,
+                  letterSpacing: -0.06,
+                  color: Colors.black,
+                ),
+              ),
             ),
           ),
           Expanded(
-            child: AppText(
-              'Rp${product.totalSales.toStringAsFixed(0)}',
-              style: AppTextStyles.bodyMedium,
-              textAlign: TextAlign.right,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: Text(
+                'Rp${CurrencyFormatter.formatThousands(product.totalSales, decimalDigits: 0)}',
+                style: const TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  height: 15 / 12,
+                  letterSpacing: -0.06,
+                  color: Colors.black,
+                ),
+                textAlign: TextAlign.right,
+              ),
             ),
           ),
         ],

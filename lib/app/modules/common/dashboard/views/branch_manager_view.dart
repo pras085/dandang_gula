@@ -1,15 +1,23 @@
+import 'package:dandang_gula/app/core/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../config/theme/app_dimensions.dart';
+import '../../../../global_widgets/charts/total_income_chart.dart';
 import '../../../../global_widgets/layout/app_card.dart';
-import '../controllers/dashboard_controller.dart';
-import '../../../../global_widgets/charts/revenue_chart.dart';
-import '../../../../global_widgets/card/action_card.dart';
-import '../../../../global_widgets/layout/app_layout.dart';
-import '../../../../global_widgets/text/app_text.dart';
-import '../../../../global_widgets/card/summary_card.dart';
+import '../../../../global_widgets/buttons/app_button.dart';
 import '../../../../config/theme/app_colors.dart';
-import '../../../../routes/app_routes.dart';
+import '../../../../config/theme/app_dimensions.dart';
+import '../../../../config/theme/app_text_styles.dart';
+import '../../../../global_widgets/text/app_text.dart';
+import '../../../../global_widgets/layout/tab_container.dart';
+import '../../../../global_widgets/charts/category_chart.dart';
+import '../../../../global_widgets/charts/stock_flow_chart.dart';
+import '../../../../global_widgets/charts/stock_usage_chart.dart';
+import '../../../../global_widgets/table/payment_method_table.dart';
+import '../../../../global_widgets/table/product_sales_table.dart';
+import '../../../../global_widgets/table/stock_alert_table.dart';
+import '../../../../global_widgets/card/summary_card.dart';
+import '../controllers/dashboard_controller.dart';
+import '../widgets/filter/period_filter.dart';
 
 class BranchManagerDashboardView extends StatelessWidget {
   final DashboardController controller;
@@ -18,186 +26,337 @@ class BranchManagerDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      physics: const NeverScrollableScrollPhysics(),
+    final tabs = [
+      TabItem(
+        title: 'Penjualan',
+        content: _buildSalesContent(),
+      ),
+      TabItem(
+        title: 'Inventori Gudang',
+        content: _buildInventoryContent(),
+      ),
+    ];
+
+    return Padding(
       padding: AppDimensions.contentPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Tab View selector untuk Penjualan / Inventori Gudang
-          _buildTabSelector(),
+          // Period filter
+          // Tab container with the content tabs
+          TabContainer(
+            tabs: tabs,
+            onTabChanged: (index) {
+              // Handle tab changes if needed
+              print('Tab changed to index $index');
+            },
+          ),
           const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
 
-          // Period selector (tampilan filter)
-          _buildPeriodSelector(),
-          const SizedBox(height: 24),
-
-          // Total Pendapatan - sama dengan admin tetapi hanya untuk cabang yang dipimpin
-          const SummaryCard(
-            title: 'Total Pendapatan',
-            value: 'Rp 50.000.000',
-            subtitle: 'Total',
-            icon: Icons.attach_money,
+  // Sales content tab
+  Widget _buildSalesContent() {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          PeriodFilter(
+            controller: controller.periodFilterController,
+            onPeriodChanged: (periodId) {
+              controller.onPeriodFilterChanged(periodId);
+            },
           ),
           const SizedBox(height: 16),
 
-          // Row dengan detail COGS dan Laba Kotor
-          const AppCard(
+          // Total Sales & Orders Overview
+          Row(
+            children: [
+              Column(
+                children: [
+                  SummaryCard(
+                    title: 'Total Pendapatan',
+                    subtitle: 'Total',
+                    value: 'Rp 50.000.000',
+                    cogsLabel: 'COGS',
+                    cogsValue: 'Rp 45.000.000',
+                    profitLabel: 'Laba Kotor',
+                    profitValue: 'Rp 5.000.000',
+                  ),
+                  const SizedBox(height: 16),
+                  SummaryCard(
+                    title: 'Total Pesanan',
+                    subtitle: 'Total',
+                    value: '1,520 Pesanan',
+                    height: 134, // Smaller height as per second design
+                  ),
+                ],
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Obx(() {
+                  return TotalIncomeChart(
+                    data: controller.dashboardRepository.incomeChartData.value,
+                  );
+                }),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Penjualan Produk
+          SizedBox(
+            height: 410,
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch, // Stretch all children to fill the row height
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AppText('COGS'),
-                      AppText(
-                        'Rp 45.000.000',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ],
+                  flex: 2,
+                  child: ProductSalesTable(
+                    title: 'Penjualan Produk',
+                    products: controller.productSales,
+                    onViewAll: () {
+                      // Action untuk melihat semua produk
+                    },
                   ),
                 ),
+                const SizedBox(width: 10),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AppText('Laba Kotor'),
-                      AppText(
-                        'Rp 5.000.000',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ],
+                  child: CategorySalesCard(
+                    title: 'Penjualan by kategori',
+                    subtitle: 'Hari ini',
+                    data: controller.categorySales,
                   ),
                 ),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 2,
+                  child: PaymentMethodTable(
+                    title: 'Pendapatan by Metode Pembayaran',
+                    paymentMethods: controller.paymentMethods,
+                    onViewAll: () {
+                      // Action untuk melihat semua metode pembayaran
+                    },
+                  ),
+                )
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  // Inventory content tab
+  Widget _buildInventoryContent() {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          PeriodFilter(
+            controller: controller.periodFilterController,
+            onPeriodChanged: (periodId) {
+              controller.onPeriodFilterChanged(periodId);
+            },
+            actionButton: [
+              Spacer(),
+              AppButton(
+                label: "Catat Pembelian Stok",
+                width: 200,
+                variant: ButtonVariant.secondary,
+              )
+            ],
+          ),
           const SizedBox(height: 16),
 
-          // Total Pesanan - sama dengan admin tetapi hanya untuk cabang yang dipimpin
-          const SummaryCard(
-            title: 'Total Pesanan',
-            value: '1,520 Pesanan',
-            subtitle: 'Total',
-            icon: Icons.receipt,
+          AppCard(
+            title: "Total Bahan",
+            child: Row(
+              children: [
+                AppText("120"),
+              ],
+            ),
+          ),
+
+          // Inventory stats
+          // Row(
+          //   children: [
+          //     Expanded(
+          //       child: SummaryCard(
+          //         title: 'Total Bahan',
+          //         value: '${controller.totalBranches.value * 40}',
+          //         secondaryValue: 'Items',
+          //         icon: Icons.category,
+          //       ),
+          //     ),
+          //     const SizedBox(width: 16),
+          //     Expanded(
+          //         child: SummaryCard(
+          //       title: 'Stok Rendah',
+          //       value: '${controller.lowStockItems.value}',
+          //       secondaryValue: 'Items',
+          //       icon: Icons.warning,
+          //     )),
+          //   ],
+          // ),
+          const SizedBox(height: 16),
+
+          // Stok Masuk & Stok Terbuang
+          Row(
+            children: [
+              // Stok Masuk
+              Expanded(
+                child: AppCard(
+                  title: 'Stok Masuk',
+                  action: const AppText(
+                    'Hari ini',
+                    style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const AppText('Jumlah items'),
+                      AppText(
+                        '15',
+                        style: AppTextStyles.h3,
+                      ),
+                      const SizedBox(height: 8),
+                      const AppText('Total'),
+                      AppText(
+                        'Rp 1.000.000',
+                        style: AppTextStyles.h3,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+
+              // Stok Terbuang
+              Expanded(
+                child: AppCard(
+                  title: 'Stok Terbuang',
+                  action: const AppText(
+                    'Hari ini',
+                    style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Progress bars untuk alasan pembuangan stok
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const AppText('Expired'),
+                          const SizedBox(height: 4),
+                          LinearProgressIndicator(
+                            value: 0.7,
+                            backgroundColor: Colors.grey[200],
+                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
+                            minHeight: 8,
+                          ),
+                          const SizedBox(height: 8),
+                          const AppText('Kesalahan Produksi'),
+                          const SizedBox(height: 4),
+                          LinearProgressIndicator(
+                            value: 0.4,
+                            backgroundColor: Colors.grey[200],
+                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
+                            minHeight: 8,
+                          ),
+                          const SizedBox(height: 8),
+                          const AppText('Lain-lain'),
+                          const SizedBox(height: 4),
+                          LinearProgressIndicator(
+                            value: 0.2,
+                            backgroundColor: Colors.grey[200],
+                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
+                            minHeight: 8,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 24),
 
-          // Grafik Total Pendapatan - sama dengan admin tetapi hanya untuk cabang yang dipimpin
+          // Statistik arus stok
           AppCard(
-            title: 'Total Pendapatan',
+            title: 'Statistik arus stok',
+            action: const AppText('Hari ini - Pk 00:00 (GMT+07)'),
             child: SizedBox(
               height: 250,
-              child: RevenueChart(
-                data: controller.salesData,
+              child: StockFlowChart(
+                data: controller.stockFlowData,
               ),
             ),
           ),
           const SizedBox(height: 24),
 
-          // Section-section lainnya sama dengan admin
-          // Hanya saja tautan menu ke halaman yang sesuai dengan akses Branch Manager
+          // Stock Alert
+          StockAlertTable(
+            title: 'Stock alert',
+            stockAlerts: controller.stockAlerts,
+            onViewAll: () {
+              // Action untuk melihat semua stock alert
+            },
+          ),
+          const SizedBox(height: 24),
 
-          // Tambahkan fitur yang spesifik untuk Branch Manager
-          // Misalnya akses cepat ke Menu Management
+          // Penggunaan Stok by Group dengan pie chart
           AppCard(
-            title: 'Manajemen Menu',
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+            title: 'Penggunaan Stok bahan by Group',
+            action: const AppText(
+              'Hari ini',
+              style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12),
+            ),
+            child: Column(
               children: [
-                ActionCard(
-                  title: 'Kelola Menu',
-                  icon: Icons.restaurant_menu,
-                  onTap: () => Get.toNamed(Routes.MENU_MANAGEMENT),
-                  color: AppColors.primary,
-                ),
-                ActionCard(
-                  title: 'Kelola Stok',
-                  icon: Icons.store,
-                  onTap: () => Get.toNamed(Routes.INVENTORY),
-                  color: AppColors.secondary,
-                ),
-                ActionCard(
-                  title: 'Kelola Staff',
-                  icon: Icons.people,
-                  onTap: () => Get.toNamed(Routes.USER_MANAGEMENT),
-                  color: AppColors.info,
+                SizedBox(
+                  height: 200,
+                  child: StockUsageChart(
+                    data: controller.stockUsageData,
+                    isDoughnut: true,
+                  ),
                 ),
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
+          const SizedBox(height: 24),
 
-  // Menggunakan komponen yang sama dengan di AdminDashboardView
-  Widget _buildTabSelector() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0E5937),
-                borderRadius: BorderRadius.circular(8),
+          // Action buttons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              AppButton(
+                label: 'Tambah Stok',
+                prefixSvgPath: AppIcons.add,
+                variant: ButtonVariant.primary,
+                onPressed: () {
+                  // Navigate to stock in page
+                  Get.toNamed('/inventory/stock-in');
+                },
+                fullWidth: false,
+                width: 150,
               ),
-              alignment: Alignment.center,
-              child: const AppText(
-                'Penjualan',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+              const SizedBox(width: 16),
+              AppButton(
+                label: 'Download Laporan',
+                prefixSvgPath: AppIcons.download,
+                variant: ButtonVariant.outline,
+                onPressed: () {},
+                fullWidth: false,
+                width: 180,
+                outlineBorderColor: AppColors.primary,
               ),
-            ),
+            ],
           ),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              alignment: Alignment.center,
-              child: const AppText(
-                'Inventori Gudang',
-                style: TextStyle(
-                  color: Colors.black87,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPeriodSelector() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Row(
-        children: [
-          const AppText('Periode Data'),
-          const SizedBox(width: 16),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0E5937),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: const AppText('Real-time', style: TextStyle(color: Colors.white)),
-          ),
-          const SizedBox(width: 16),
-          const AppText('Hari ini - Pk 00:00 (GMT+07)'),
-          const Spacer(),
-          const Icon(Icons.calendar_today, size: 18),
+          const SizedBox(height: 16),
         ],
       ),
     );

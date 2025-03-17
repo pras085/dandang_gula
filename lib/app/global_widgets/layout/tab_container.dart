@@ -5,12 +5,10 @@ import '../../config/theme/app_text_styles.dart';
 class TabItem {
   final String title;
   final Widget content;
-  final IconData? icon;
 
   TabItem({
     required this.title,
     required this.content,
-    this.icon,
   });
 }
 
@@ -22,20 +20,18 @@ class TabContainer extends StatefulWidget {
   final double height;
   final double tabHeight;
   final double borderRadius;
-  final bool maintainState;
   final ValueChanged<int>? onTabChanged;
   final int initialIndex;
 
   const TabContainer({
     super.key,
     required this.tabs,
-    this.activeTabColor = AppColors.primary,
-    this.inactiveTabColor = AppColors.background,
-    this.backgroundColor = const Color(0xFFE6E6E6),
-    this.height = 600, // Default height or null for flexible height
-    this.tabHeight = 42,
+    this.activeTabColor = const Color(0xFF0C4123),
+    this.inactiveTabColor = const Color(0x730C4123), // 45% opacity
+    this.backgroundColor = const Color(0xFFECECEC), // Matching your design
+    this.height = 600,
+    this.tabHeight = 60, // Increased to match your design
     this.borderRadius = 16,
-    this.maintainState = true,
     this.onTabChanged,
     this.initialIndex = 0,
   });
@@ -84,7 +80,7 @@ class _TabContainerState extends State<TabContainer> with SingleTickerProviderSt
         Container(
           width: double.infinity,
           height: widget.tabHeight,
-          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 6),
           decoration: BoxDecoration(
             color: widget.backgroundColor,
             borderRadius: BorderRadius.circular(widget.borderRadius),
@@ -95,55 +91,60 @@ class _TabContainerState extends State<TabContainer> with SingleTickerProviderSt
               final tab = entry.value;
               final isSelected = index == _currentIndex;
 
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    _tabController.animateTo(index);
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isSelected ? Colors.white : Colors.transparent,
-                      borderRadius: BorderRadius.circular(widget.borderRadius - 4),
-                      boxShadow: isSelected
-                          ? [
-                              const BoxShadow(
-                                color: Color.fromRGBO(152, 152, 152, 0.12),
-                                blurRadius: 2,
-                                offset: Offset(0, 2),
-                              ),
-                            ]
-                          : null,
-                    ),
-                    alignment: Alignment.center,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (tab.icon != null) ...[
-                          Icon(
-                            tab.icon,
-                            color: isSelected ? widget.activeTabColor : AppColors.textSecondary,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 6),
-                        ],
-                        Text(
-                          tab.title,
-                          style: AppTextStyles.contentLabel.copyWith(
-                            color: const Color(0xFF0C4123),
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                          ),
+              return GestureDetector(
+                onTap: () {
+                  _tabController.animateTo(index);
+                },
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.white : Colors.transparent,
+                    borderRadius: BorderRadius.circular(8), // Using 8px from design
+                    boxShadow: isSelected
+                        ? const [
+                            BoxShadow(
+                              color: Color.fromRGBO(152, 152, 152, 0.12),
+                              blurRadius: 2,
+                              offset: Offset(0, 2),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  alignment: Alignment.center,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        tab.title,
+                        style: const TextStyle(
+                          fontFamily: 'Work Sans',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500, // FontWeight.w540 from design
+                          height: 16 / 14, // Line height 16px from design
+                          letterSpacing: -0.04, // Letter spacing -0.04em from design
+                          color: Color(0xFF0C4123),
+                        ).copyWith(
+                          color: widget.activeTabColor.withOpacity(isSelected ? 1.0 : 0.45),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               );
             }).toList(),
           ),
         ),
+        const SizedBox(height: 16),
 
-        // Tab content
-        widget.tabs[_currentIndex].content,
+        // Tab content with animation for smooth transitions
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: KeyedSubtree(
+            key: ValueKey<int>(_currentIndex),
+            child: widget.tabs[_currentIndex].content,
+          ),
+        ),
       ],
     );
   }

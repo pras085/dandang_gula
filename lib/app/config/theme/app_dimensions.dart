@@ -38,7 +38,7 @@ class AppDimensions {
   static const double iconSizeLarge = 32.0;
 
   // Card dimensions
-  static const double cardBorderRadius = 8.0;
+  static const double cardBorderRadius = 16.0;
   static const double cardPadding = 16.0;
 
   // Avatar dimensions

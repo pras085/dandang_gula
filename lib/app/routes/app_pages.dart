@@ -58,6 +58,8 @@ class AppPages {
       page: () => const DashboardView(),
       binding: DashboardBinding(),
       middlewares: [AuthMiddleware()],
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 150),
     ),
 
     GetPage(

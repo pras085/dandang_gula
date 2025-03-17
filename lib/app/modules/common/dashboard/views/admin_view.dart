@@ -1,6 +1,7 @@
 import 'package:dandang_gula/app/core/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../global_widgets/charts/total_income_chart.dart';
 import '../../../../global_widgets/layout/app_card.dart';
 import '../../../../global_widgets/layout/app_layout.dart';
 import '../../../../global_widgets/buttons/app_button.dart';
@@ -31,210 +32,120 @@ class AdminDashboardView extends GetView<DashboardController> {
       TabItem(
         title: 'Penjualan',
         content: _buildSalesContent(),
-        icon: Icons.monetization_on,
       ),
       TabItem(
         title: 'Inventori Gudang',
         content: _buildInventoryContent(),
-        icon: Icons.inventory_2,
       ),
     ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Period filter
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: PeriodFilter(
-            controller: controller.periodFilterController,
-            onPeriodChanged: (periodId) {
-              controller.onPeriodFilterChanged(periodId);
+    return Padding(
+      padding: AppDimensions.contentPadding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Period filter
+          // Tab container with the content tabs
+          TabContainer(
+            tabs: tabs,
+            onTabChanged: (index) {
+              // Handle tab changes if needed
+              print('Tab changed to index $index');
             },
           ),
-        ),
-        const SizedBox(height: 16),
-
-        // Tab container with the content tabs
-        TabContainer(
-          tabs: tabs,
-          onTabChanged: (index) {
-            // Handle tab changes if needed
-            print('Tab changed to index $index');
-          },
-        ),
-      ],
+          const SizedBox(height: 16),
+        ],
+      ),
     );
   }
 
   // Sales content tab
   Widget _buildSalesContent() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Total Income Card
-          TotalIncomeCard(controller: controller),
-          const SizedBox(height: 24),
+          PeriodFilter(
+            controller: controller.periodFilterController,
+            onPeriodChanged: (periodId) {
+              controller.onPeriodFilterChanged(periodId);
+            },
+          ),
+          const SizedBox(height: 16),
 
           // Total Sales & Orders Overview
           Row(
             children: [
-              Expanded(
-                child: Obx(() => SummaryCard(
-                      title: 'Total Pendapatan',
-                      value: 'Rp ${controller.todaySales.value.toStringAsFixed(0)}',
-                      subtitle: 'Total',
-                      icon: Icons.attach_money,
-                    )),
+              Column(
+                children: [
+                  SummaryCard(
+                    title: 'Total Pendapatan',
+                    subtitle: 'Total',
+                    value: 'Rp 50.000.000',
+                    cogsLabel: 'COGS',
+                    cogsValue: 'Rp 45.000.000',
+                    profitLabel: 'Laba Kotor',
+                    profitValue: 'Rp 5.000.000',
+                  ),
+                  const SizedBox(height: 16),
+                  SummaryCard(
+                    title: 'Total Pesanan',
+                    subtitle: 'Total',
+                    value: '1,520 Pesanan',
+                    height: 134, // Smaller height as per second design
+                  ),
+                ],
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 10),
               Expanded(
-                child: Obx(() => SummaryCard(
-                      title: 'Total Pesanan',
-                      value: '${controller.completedOrders.value} Pesanan',
-                      subtitle: 'Total',
-                      icon: Icons.receipt,
-                    )),
+                child: Obx(() {
+                  return TotalIncomeChart(
+                    data: controller.dashboardRepository.incomeChartData.value,
+                  );
+                }),
               ),
             ],
           ),
           const SizedBox(height: 16),
-
-          // Row with detail COGS and Laba Kotor
-          Row(
-            children: [
-              Expanded(
-                child: AppCard(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            AppText(
-                              'COGS',
-                              style: AppTextStyles.bodySmall,
-                            ),
-                            AppText(
-                              'Rp 45.000.000',
-                              style: AppTextStyles.bodyLarge.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            AppText(
-                              'Laba Kotor',
-                              style: AppTextStyles.bodySmall,
-                            ),
-                            AppText(
-                              'Rp 5.000.000',
-                              style: AppTextStyles.bodyLarge.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // Revenue vs Expense Chart Card
-          RevenueExpenseChartCard(controller: controller),
-          const SizedBox(height: 24),
-
-          // Grafik Total Pendapatan
-          AppCard(
-            title: 'Total Pendapatan',
-            child: SizedBox(
-              height: 250,
-              child: Obx(() => RevenueChart(
-                    data: controller.salesData,
-                  )),
-            ),
-          ),
-          const SizedBox(height: 24),
 
           // Penjualan Produk
-          Obx(() => ProductSalesTable(
-                title: 'Penjualan Produk',
-                products: controller.productSales,
-                onViewAll: () {
-                  // Action untuk melihat semua produk
-                },
-              )),
-          const SizedBox(height: 24),
-
-          // Two cards in a row: Penjualan by kategori & Pendapatan by Metode Pembayaran
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Penjualan by kategori
-              Expanded(
-                child: AppCard(
-                  title: 'Penjualan by kategori',
-                  action: Text(
-                    'Hari ini',
-                    style: TextStyle(
-                      color: AppColors.textTertiary,
-                      fontStyle: FontStyle.italic,
-                      fontSize: 12,
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: 200,
-                        child: Obx(() => CategoryChart(
-                              data: controller.categorySales,
-                            )),
-                      ),
-                    ],
+          SizedBox(
+            height: 410,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch, // Stretch all children to fill the row height
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: ProductSalesTable(
+                    title: 'Penjualan Produk',
+                    products: controller.productSales,
+                    onViewAll: () {
+                      // Action untuk melihat semua produk
+                    },
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-
-              // Pendapatan by Metode Pembayaran
-              Expanded(
-                child: Obx(() => PaymentMethodTable(
-                      title: 'Pendapatan by Metode Pembayaran',
-                      paymentMethods: controller.paymentMethods,
-                      onViewAll: () {
-                        // Action untuk melihat semua metode pembayaran
-                      },
-                    )),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // Download Data button
-          Align(
-            alignment: Alignment.centerRight,
-            child: AppButton(
-              label: 'Download Data',
-              prefixSvgPath: AppIcons.add,
-              variant: ButtonVariant.outline,
-              onPressed: () {},
-              fullWidth: false,
-              width: 170,
-              outlineBorderColor: AppColors.primary,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: CategorySalesCard(
+                    title: 'Penjualan by kategori',
+                    subtitle: 'Hari ini',
+                    data: controller.categorySales,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 2,
+                  child: PaymentMethodTable(
+                    title: 'Pendapatan by Metode Pembayaran',
+                    paymentMethods: controller.paymentMethods,
+                    onViewAll: () {
+                      // Action untuk melihat semua metode pembayaran
+                    },
+                  ),
+                )
+              ],
             ),
           ),
-          const SizedBox(height: 16),
         ],
       ),
     );
@@ -243,32 +154,55 @@ class AdminDashboardView extends GetView<DashboardController> {
   // Inventory content tab
   Widget _buildInventoryContent() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Inventory stats
-          Row(
-            children: [
-              Expanded(
-                child: Obx(() => SummaryCard(
-                      title: 'Total Bahan',
-                      value: '${controller.totalBranches.value * 40}',
-                      secondaryValue: 'Items',
-                      icon: Icons.category,
-                    )),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Obx(() => SummaryCard(
-                      title: 'Stok Rendah',
-                      value: '${controller.lowStockItems.value}',
-                      secondaryValue: 'Items',
-                      icon: Icons.warning,
-                    )),
-              ),
+          PeriodFilter(
+            controller: controller.periodFilterController,
+            onPeriodChanged: (periodId) {
+              controller.onPeriodFilterChanged(periodId);
+            },
+            actionButton: [
+              Spacer(),
+              AppButton(
+                label: "Catat Pembelian Stok",
+                width: 200,
+                variant: ButtonVariant.secondary,
+              )
             ],
           ),
+          const SizedBox(height: 16),
+
+          AppCard(
+            title: "Total Bahan",
+            child: Row(
+              children: [
+                AppText("120"),
+              ],
+            ),
+          ),
+
+          // Inventory stats
+          // Row(
+          //   children: [
+          //     Expanded(
+          //       child: SummaryCard(
+          //         title: 'Total Bahan',
+          //         value: '${controller.totalBranches.value * 40}',
+          //         secondaryValue: 'Items',
+          //         icon: Icons.category,
+          //       ),
+          //     ),
+          //     const SizedBox(width: 16),
+          //     Expanded(
+          //         child: SummaryCard(
+          //       title: 'Stok Rendah',
+          //       value: '${controller.lowStockItems.value}',
+          //       secondaryValue: 'Items',
+          //       icon: Icons.warning,
+          //     )),
+          //   ],
+          // ),
           const SizedBox(height: 16),
 
           // Stok Masuk & Stok Terbuang
@@ -359,21 +293,21 @@ class AdminDashboardView extends GetView<DashboardController> {
             action: const AppText('Hari ini - Pk 00:00 (GMT+07)'),
             child: SizedBox(
               height: 250,
-              child: Obx(() => StockFlowChart(
-                    data: controller.stockFlowData,
-                  )),
+              child: StockFlowChart(
+                data: controller.stockFlowData,
+              ),
             ),
           ),
           const SizedBox(height: 24),
 
           // Stock Alert
-          Obx(() => StockAlertTable(
-                title: 'Stock alert',
-                stockAlerts: controller.stockAlerts,
-                onViewAll: () {
-                  // Action untuk melihat semua stock alert
-                },
-              )),
+          StockAlertTable(
+            title: 'Stock alert',
+            stockAlerts: controller.stockAlerts,
+            onViewAll: () {
+              // Action untuk melihat semua stock alert
+            },
+          ),
           const SizedBox(height: 24),
 
           // Penggunaan Stok by Group dengan pie chart
@@ -387,10 +321,10 @@ class AdminDashboardView extends GetView<DashboardController> {
               children: [
                 SizedBox(
                   height: 200,
-                  child: Obx(() => StockUsageChart(
-                        data: controller.stockUsageData,
-                        isDoughnut: true,
-                      )),
+                  child: StockUsageChart(
+                    data: controller.stockUsageData,
+                    isDoughnut: true,
+                  ),
                 ),
               ],
             ),

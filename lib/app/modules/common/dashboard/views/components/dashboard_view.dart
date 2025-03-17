@@ -51,7 +51,6 @@ class DashboardView extends GetView<DashboardController> {
 
       // Wrap with AppLayout
       return AppLayout(
-        maintainState: true,
         content: dashboardContent,
         onRefresh: () async {
           await controller.initializeData();

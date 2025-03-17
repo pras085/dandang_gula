@@ -9,9 +9,6 @@ import '../../config/theme/app_text_styles.dart';
 import '../../core/utils.dart';
 import '../../core/controllers/navigation_controller.dart';
 import '../../data/services/auth_service.dart';
-import '../../modules/common/dashboard/views/admin_view.dart';
-import '../../modules/common/dashboard/views/pusat_view.dart';
-import '../../modules/pusat/branch_management/views/branch_management_view.dart';
 import '../../routes/app_routes.dart';
 import '../buttons/icon_button.dart';
 import '../text/app_text.dart';
@@ -32,7 +29,6 @@ class AppLayout extends StatelessWidget {
   final String title;
   final bool showBackButton;
   final VoidCallback? onBackPressed;
-  final bool maintainState;
 
   final AuthService _authService = Get.find<AuthService>();
   final NavigationController _navigationController = Get.find<NavigationController>();
@@ -46,7 +42,6 @@ class AppLayout extends StatelessWidget {
     this.title = '',
     this.showBackButton = false,
     this.onBackPressed,
-    this.maintainState = true,
   });
 
   UserRole _getUserRoleEnum() {
@@ -68,44 +63,87 @@ class AppLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: AppColors.white,
-      child: SafeArea(
-        child: Scaffold(
-          backgroundColor: AppColors.background,
-          body: RefreshIndicator(
-            onRefresh: onRefresh ?? () async {},
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                children: [
-                  // App Bar
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.only(
-                      left: 24,
-                      top: 12,
-                      right: 24,
-                      bottom: 12,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildNavigation(),
-                        const SizedBox(width: 12),
-                        _buildUserProfile(),
-                      ],
-                    ),
-                  ),
+    return WillPopScope(
+      onWillPop: () async {
+        // If we're showing a back button, use its handler
+        if (showBackButton && onBackPressed != null) {
+          onBackPressed!();
+          return false;
+        }
 
-                  // Content
-                  maintainState ? content : KeyedSubtree(key: UniqueKey(), child: content),
-                ],
+        // Otherwise, let the navigation controller handle it
+        // You would implement handleBackNavigation in your NavigationController
+        if (_navigationController.routeHistory.length > 1) {
+          _navigationController.handleBackNavigation();
+          return false;
+        }
+
+        // Allow the app to be closed if we're at the root
+        return true;
+      },
+      child: ColoredBox(
+        color: AppColors.white,
+        child: SafeArea(
+          child: Scaffold(
+            backgroundColor: AppColors.background,
+            body: RefreshIndicator(
+              onRefresh: onRefresh ?? () async {},
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  children: [
+                    // App Bar
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.only(
+                        left: 24,
+                        top: 12,
+                        right: 24,
+                        bottom: 12,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildNavigation(),
+                          const SizedBox(width: 12),
+                          _buildUserProfile(),
+                        ],
+                      ),
+                    ),
+
+                    // Content
+                    Obx(() {
+                      return AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        transitionBuilder: (Widget child, Animation<double> animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: child,
+                          );
+                        },
+                        child: KeyedSubtree(
+                          key: ValueKey(_navigationController.currentRoute.value),
+                          child: content,
+                        ),
+                      );
+                    }),
+
+                    Obx(
+                      () => _navigationController.isNavigating.value
+                          ? Container(
+                              width: double.infinity,
+                              height: 3,
+                              child: const LinearProgressIndicator(),
+                            )
+                          : const SizedBox(),
+                    ),
+                  ],
+                ),
               ),
             ),
+            floatingActionButton: floatingActionButton,
+            bottomNavigationBar: bottomNavigationBar,
           ),
-          floatingActionButton: floatingActionButton,
-          bottomNavigationBar: bottomNavigationBar,
         ),
       ),
     );
@@ -190,20 +228,26 @@ class AppLayout extends StatelessWidget {
       case UserRole.admin:
         navItems.addAll([
           _buildNavItem(
-            'Manajemen Cabang',
-            AppIcons.orderDetails,
-            currentRoute == Routes.BRANCH_MANAGEMENT,
-            Routes.BRANCH_MANAGEMENT,
+            'Stok Bahan',
+            AppIcons.wheat,
+            currentRoute == Routes.STOCK_IN,
+            Routes.STOCK_IN,
           ),
           _buildNavItem(
-            'Management User',
-            AppIcons.userAccess,
-            currentRoute == Routes.USER_MANAGEMENT,
-            Routes.USER_MANAGEMENT,
+            'Manajemen Menu',
+            AppIcons.restaurant,
+            currentRoute == Routes.REPORTS,
+            Routes.REPORTS,
           ),
           _buildNavItem(
             'Laporan',
             AppIcons.reportData,
+            currentRoute == Routes.REPORTS,
+            Routes.REPORTS,
+          ),
+          _buildNavItem(
+            'Manajemen User',
+            AppIcons.userAccess,
             currentRoute == Routes.REPORTS,
             Routes.REPORTS,
           ),
@@ -568,6 +612,36 @@ class AppLayout extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+      ),
+    );
+  }
+}
+
+class ContentFadeTransition extends StatelessWidget {
+  final Widget child;
+  final Duration duration;
+  final String? keyId;
+
+  const ContentFadeTransition({
+    super.key,
+    required this.child,
+    this.duration = const Duration(milliseconds: 150),
+    this.keyId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: duration,
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: child,
+        );
+      },
+      child: KeyedSubtree(
+        key: ValueKey(key ?? UniqueKey()),
+        child: child,
       ),
     );
   }
