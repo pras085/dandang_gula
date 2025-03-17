@@ -230,8 +230,8 @@ class AppLayout extends StatelessWidget {
           _buildNavItem(
             'Stok Bahan',
             AppIcons.wheat,
-            currentRoute == Routes.STOCK_IN,
-            Routes.STOCK_IN,
+            currentRoute == Routes.INVENTORY,
+            Routes.INVENTORY,
           ),
           _buildNavItem(
             'Manajemen Menu',
