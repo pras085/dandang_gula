@@ -1,3 +1,4 @@
+import 'package:dandang_gula/app/global_widgets/text/app_text.dart';
 import 'package:flutter/material.dart';
 import '../controllers/dashboard_controller.dart';
 
@@ -8,6 +9,10 @@ class KasirDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox();
+    return Scaffold(
+      body: Center(
+        child: AppText("Kasir view"),
+      ),
+    );
   }
 }

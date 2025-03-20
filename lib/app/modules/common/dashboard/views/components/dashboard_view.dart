@@ -24,9 +24,9 @@ class DashboardView extends GetView<DashboardController> {
       }
 
       // Kasir view memiliki layout khusus
-      if (controller.userRole.value == 'kasir') {
-        return KasirDashboardView(controller: controller);
-      }
+      // if (controller.userRole.value == 'kasir') {
+      //   return KasirDashboardView(controller: controller);
+      // }
 
       // Untuk role lainnya, gunakan AppLayout dengan content yang sesuai
       Widget dashboardContent;
@@ -42,6 +42,9 @@ class DashboardView extends GetView<DashboardController> {
           break;
         case 'gudang':
           dashboardContent = GudangDashboardView(controller: controller);
+          break;
+        case 'kasir':
+          dashboardContent = KasirDashboardView(controller: controller);
           break;
         default:
           dashboardContent = Center(

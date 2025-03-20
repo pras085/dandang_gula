@@ -236,20 +236,20 @@ class AppLayout extends StatelessWidget {
           _buildNavItem(
             'Manajemen Menu',
             AppIcons.restaurant,
-            currentRoute == Routes.REPORTS,
-            Routes.REPORTS,
+            currentRoute == "",
+            "",
           ),
           _buildNavItem(
             'Laporan',
             AppIcons.reportData,
-            currentRoute == Routes.REPORTS,
-            Routes.REPORTS,
+            currentRoute == "",
+            "",
           ),
           _buildNavItem(
             'Manajemen User',
             AppIcons.userAccess,
-            currentRoute == Routes.REPORTS,
-            Routes.REPORTS,
+            currentRoute == "",
+            "",
           ),
         ]);
         break;
@@ -265,8 +265,8 @@ class AppLayout extends StatelessWidget {
           _buildNavItem(
             'Laporan',
             AppIcons.reportData,
-            currentRoute == Routes.REPORTS,
-            Routes.REPORTS,
+            currentRoute == "",
+            "",
           ),
           _buildNavItem(
             'Presensi',
@@ -282,14 +282,14 @@ class AppLayout extends StatelessWidget {
           _buildNavItem(
             'Stok Bahan',
             AppIcons.wheat,
-            currentRoute == Routes.STOCK_IN,
-            Routes.STOCK_IN,
+            currentRoute == "",
+            "",
           ),
           _buildNavItem(
             'Laporan',
             AppIcons.reportData,
-            currentRoute == Routes.REPORTS,
-            Routes.REPORTS,
+            currentRoute == "",
+            "",
           ),
         ]);
         break;
@@ -299,8 +299,8 @@ class AppLayout extends StatelessWidget {
           _buildNavItem(
             'Manajemen Cabang',
             AppIcons.orderDetails,
-            currentRoute == Routes.BRANCH_MANAGEMENT,
-            Routes.BRANCH_MANAGEMENT,
+            currentRoute == "",
+            "",
           ),
           _buildNavItem(
             'Management User',
@@ -311,8 +311,8 @@ class AppLayout extends StatelessWidget {
           _buildNavItem(
             'Laporan',
             AppIcons.reportData,
-            currentRoute == Routes.REPORTS,
-            Routes.REPORTS,
+            currentRoute == "",
+            "",
           ),
         ]);
         break;
@@ -340,8 +340,8 @@ class AppLayout extends StatelessWidget {
           _buildNavItem(
             'Laporan',
             AppIcons.reportData,
-            currentRoute == Routes.REPORTS,
-            Routes.REPORTS,
+            currentRoute == "",
+            "",
           ),
           _buildNavItem(
             'Management User',
